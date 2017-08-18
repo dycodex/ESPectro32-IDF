@@ -8,4 +8,3 @@ _backup/
 .settings
 spiffs_files/
 .vscode/
-main/explore/
