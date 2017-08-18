@@ -10,5 +10,3 @@ ESPectro32 is an IoT development board based-on ESP32 MCU.
 
 
 .. _Espressif IoT Development Framework: https://github.com/espressif/esp-idf
-
-
