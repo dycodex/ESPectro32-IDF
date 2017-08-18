@@ -1,0 +1,11 @@
+build/
+build_tools/
+sdkconfig.old
+_backup/
+.DS_Store
+.project
+.cproject
+.settings
+spiffs_files/
+.vscode/
+main/explore/

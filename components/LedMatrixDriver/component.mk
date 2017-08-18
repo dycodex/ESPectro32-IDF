@@ -1,0 +1,3 @@
+COMPONENT_ADD_INCLUDEDIRS := Adafruit-GFX src 
+COMPONENT_SRCDIRS := Adafruit-GFX src
+CXXFLAGS += -fno-rtti
