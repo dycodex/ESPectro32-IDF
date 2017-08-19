@@ -3,21 +3,11 @@
 */
 
 #include <esp_log.h>
-#include <string>
 #include "sdkconfig.h"
-#include "driver/gpio.h"
 
 #include <Arduino.h>
-
-#include <stdio.h>
-#include <stdint.h>
-#include <stddef.h>
+#include <string>
 #include <string.h>
-
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
-#include "freertos/semphr.h"
-#include "freertos/queue.h"
 
 const static char *TAG ="APP";
 
@@ -25,45 +15,14 @@ extern "C" {
 	void app_main(void);
 }
 
-#include "Constants.h"
-
-//#include "WiFiManager.h"
-//WiFiManager wifiMgr;
-
-// #include <FabrickClient.h>
-
-// HardwareSerial loraSerial(1);
-// static void testLoRa() {
-// 	loraSerial.begin(9600, SERIAL_8N1, 33, 23);
-// 	FabrickLoraClient.begin(&loraSerial);
-
-// 	//String temp_data_s = String(2350, HEX);
-// 	float temp_f = 23.45;
-
-// 	int temp_int       = int(temp_f * 10);                                 // Scale and convert to int.
-// 	long temp_2c       = (temp_int >= 0) ? temp_int : (temp_int + 65536);  // Convert to 2's complement
-// 	String temp_data_s = String(temp_2c, HEX);                             // Convert to hex.
-// 	temp_data_s        = FabrickLoraClientClass::addZeros(temp_data_s, 4);                     // Ensure consistent length
-
-// 	//FabrickLoraClient.send("81ef46e9", 1, 0, 3303, temp_data_s, 4);
-// 	FabrickLoraClient.send("c1a12d25", 1, 0, 3303, temp_data_s, 4);
-// }
-
 #include <ESPectro32_Board.h>
 
-//#include <ESPectro32_Button.h>
-//ESPectro32_Button buttonA(ESPECTRO32_BUTTON_A_PIN);
-//ESPectro32_Button buttonB(ESPECTRO32_BUTTON_B_PIN);
-
-//#include "explore/TestI2S.h"
-#include "explore/TestI2S2-SPIFFS.h"
-#include "explore/TestMatrix.h"
-
 #include <ESPectro32_RGBLED_Animation.h>
-
 RgbLedColor_t aCol(200, 0, 80);
-//ESPectro32_RGBLED_Animation fadeAnim(ESPectro32.RgbLed(), aCol);
-ESPectro32_RGBLED_FadeInOutAnimation fadeAnim(ESPectro32.RgbLed(), aCol);
+ESPectro32_RGBLED_GlowingAnimation glowAnim(ESPectro32.RgbLed(), aCol);
+
+#include <ESPectro32_LedMatrix_Animation.h>
+ESPectro32_LedMatrix_Animation ledMatrixAnim;
 
 void app_main(void)
 {
@@ -73,30 +32,18 @@ void app_main(void)
 	ESP_LOGI(TAG, "It begins!");
 
 //	testSPIFFS();
-//
-////	if (!mount_fs()) {
-////		return;
-////	}
-////
-////	//tryI2SInput(NULL);
-////	tryI2SRecord(NULL);
-//
-//	tryI2SPlay(NULL);
-////	xTaskCreate(&tryI2SPlay, "tryI2SPlay", 2048*10, NULL, configMAX_PRIORITIES - 2, NULL);
-//	delay(100);
-
-
-//	testLedMatrix();
-//	xTaskCreate(&testLedMatrix, "testLedMatrix", 2048*2, NULL, configMAX_PRIORITIES - 2, NULL);
-//	return;
 
 	ESPectro32.begin();
-//	ESPectro32.turnOnLed();
-//	delay(1000);
-//	ESPectro32.turnOffLed();
 
+	//Turn on/off LED once
+//	ESPectro32.turnOnLED();
+//	delay(1000);
+//	ESPectro32.turnOffLED();
+
+	//LED animation
 	ESPectro32.LED().setAnimation(ESPectro_LED_Animation_Fading, 3000, 3);
 	//ESPectro32.LED().blink(1000, 3);
+
 
 //	ESPectro32.RgbLed().setPixel(0, 120, 128, 7);
 //	ESPectro32.RgbLed().show();
@@ -104,8 +51,8 @@ void app_main(void)
 //	ESPectro32.RgbLed().clear();
 //	ESPectro32.RgbLed().show();
 
-
-	fadeAnim.start(2000, 3);
+	//RGB LED Animation, glowing LED for 3 times, 3 seconds each
+	glowAnim.start(3000, 3);
 
 	/*
 	fadeAnim.start([](const WS2812Animator::AnimationParam param) {
@@ -132,6 +79,24 @@ void app_main(void)
 	}, 1000, 10);*/
 
 
+	//LED Matrix animation (only support 8 frames)
+	ledMatrixAnim.setLedMatrix(ESPectro32.LedMatrix());
+
+	ledMatrixAnim.addFrameWithData((uint8_t*)LED_MATRIX_ICON_HEART);
+	ledMatrixAnim.addFrameWithData((uint8_t*)LED_MATRIX_ICON_HEART_OUTLINE);
+	ledMatrixAnim.addFrameWithData((uint8_t*)LED_MATRIX_ICON_HEART);
+	ledMatrixAnim.addFrameWithData((uint8_t*)LED_MATRIX_ICON_HEART_OUTLINE);
+	ledMatrixAnim.addFrameWithDataCallback([](ESPectro32_LedMatrix &ledM) {
+		ledM.drawCircle(3, 3, 3, 200);
+	});
+	ledMatrixAnim.addFrameWithDataCallback([](ESPectro32_LedMatrix &ledM) {
+		ledM.fillCircle(3, 3, 3, 200);
+	});
+
+	ledMatrixAnim.start(3000);
+
+
+	//Button handlers
 	ESPectro32.ButtonA().onButtonUp([]() {
 		ESP_LOGI(TAG, "Button A up");
 	});
@@ -144,12 +109,10 @@ void app_main(void)
 		ESP_LOGI(TAG, "Button B up");
 	});
 
-	ESPectro32.LedMatrix().drawBitmap(0, 0, LED_MATRIX_ICON_HEART, 7, 7, 200);
-
-	for(;;) {
-		int trVal = ESPectro32.readPhotoTransistorValue();
-		ESP_LOGI(TAG, "Photo TR: %d %f", trVal, ESPectro32.readPhotoTransistorVoltage());
-		vTaskDelay(400/portTICK_PERIOD_MS);
-	}
+//	for(;;) {
+//		int trVal = ESPectro32.readPhotoTransistorValue();
+//		ESP_LOGI(TAG, "Photo TR: %d %f, HALL: %d", trVal, ESPectro32.readPhotoTransistorVoltage(), ESPectro32.readOnBoardHallSensor());
+//		vTaskDelay(500/portTICK_PERIOD_MS);
+//	}
 }
 

@@ -16,14 +16,14 @@
  * This class is designed to be subclassed with the method:
  *
  * @code{.cpp}
- * void run(void *data) { ... }
+ * void runAsync(void *data) { ... }
  * @endcode
  *
  * For example:
  *
  * @code{.cpp}
- * class CurlTestTask : public Task {
- *    void run(void *data) {
+ * class BackgroundTask : public Task {
+ *    void runAsync(void *data) {
  *       // Do something
  *    }
  * };

@@ -12,8 +12,10 @@
 #include "ESPectro32_Constants.h"
 #include <RgbLedColor.h>
 #include <Task.h>
-//#include <exception>
 
+/**
+ * @brief The LED animation supported, for now
+ */
 enum ESPectro32_LED_AnimationType {
         ESPectro_LED_Animation_ON,
         ESPectro_LED_Animation_OFF,
@@ -22,6 +24,9 @@ enum ESPectro32_LED_AnimationType {
         ESPectro_LED_Animation_Strobo
     };
 
+/**
+ * @brief The LED animator
+ */
 class ESPectro32_LED_Animator: public Task {
 public:
 
@@ -84,12 +89,18 @@ private:
     void strobo();
 };
 
+/**
+ * @brief Represent LED
+ */
 class ESPectro32_LED {
 public:
 
     ESPectro32_LED(uint8_t pin = ESPECTRO32_LED_PIN, bool activeHigh = false);
     ~ESPectro32_LED();
 
+    /**
+     * @brief Must be called first before anything else.
+     */
     void begin();
     void turnOn();
     void turnOff();

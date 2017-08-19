@@ -12,7 +12,7 @@
 #include <functional>
 #include "Task.h"
 
-class WS2812Animator: Task {
+class Animator: Task {
 public:
 
 	enum AnimationState
@@ -34,8 +34,8 @@ public:
 	typedef std::function<void()> AnimationFinishedCallback;
 
 
-	WS2812Animator();
-	virtual ~WS2812Animator();
+	Animator();
+	virtual ~Animator();
 
 	void start(AnimationUpdateCallback animUpdateCallback, AnimationFinishedCallback animFinishedCallback,
 			   uint16_t duration = 0, uint16_t updateInterval = 0);

@@ -10,6 +10,8 @@
 
 #include <esp_log.h>
 #include <WS2812.h>
+#include <Arduino.h>
+#include <Wire.h>
 #include "ESPectro32_Constants.h"
 #include "ESPectro32_LED.h"
 #include "ESPectro32_RGBLED.h"
@@ -23,6 +25,9 @@
 #define ESPECTRO32_INFO_PRINT(...)   ESP_LOGI("ESPECTRO32", __VA_ARGS__);
 #define ESPECTRO32_ERROR_PRINT(...)  ESP_LOGE("ESPECTRO32", __VA_ARGS__);
 
+/**
+ * @brief The holy grail of ESPectro32. The gate to awesomeness of the board.
+ */
 class ESPectro32_Board {
 public:
 	ESPectro32_Board();
@@ -106,6 +111,8 @@ public:
 	float readAnalogVoltage(adc1_channel_t channel, adc_bits_width_t bitWidth = ADC_WIDTH_12Bit, adc_atten_t atten = ADC_ATTEN_6db);
 	int readPhotoTransistorValue(adc_bits_width_t bitWidth = ADC_WIDTH_12Bit, adc_atten_t atten = ADC_ATTEN_6db);
 	float readPhotoTransistorVoltage(adc_bits_width_t bitWidth = ADC_WIDTH_12Bit, adc_atten_t atten = ADC_ATTEN_6db);
+
+	int readOnBoardHallSensor();
 
 	/**
 	 * @brief Scan attached I2C peripherals

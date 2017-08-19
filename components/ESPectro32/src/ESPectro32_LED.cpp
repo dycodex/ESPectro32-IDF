@@ -155,6 +155,7 @@ ESPectro32_LED_Animator::ESPectro32_LED_Animator():
 }
 
 ESPectro32_LED_Animator::~ESPectro32_LED_Animator() {
+	free(pins_);
 }
 
 void ESPectro32_LED_Animator::initPWM(byte pin, bool activeHigh) {

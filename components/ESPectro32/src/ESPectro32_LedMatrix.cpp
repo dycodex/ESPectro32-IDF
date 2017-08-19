@@ -22,22 +22,18 @@ void ESPectro32_LedMatrix::drawPixel(int16_t x, int16_t y, uint16_t color) {
 	switch (getRotation()) {
 	case 1:
 		_swap_int16_t(x, y);
-		//x = 15 - x - 1;
 		x = 7 - x - 1;
 		break;
 	case 2:
-		//x = 15 - x - 1;
 		x = 7 - x - 1;
 		y = 7 - y - 1;
 		break;
 	case 3:
 		_swap_int16_t(x, y);
-		//y = 9 - y - 1;
 		y = 7 - y - 1;
 		break;
 	}
 
-	// charlie wing is smaller:
 	if ((x < 0) || (x >= 7) || (y < 0) || (y >= 7))
 		return;
 
@@ -47,7 +43,6 @@ void ESPectro32_LedMatrix::drawPixel(int16_t x, int16_t y, uint16_t color) {
 		x = 7 - x;
 		y += 7;
 	} else {
-		//y = 7 - y;
 		x = 7 - x - 1;
 	}
 

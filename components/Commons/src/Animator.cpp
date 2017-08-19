@@ -5,18 +5,18 @@
  *      Author: andri
  */
 
-#include "WS2812Animator.h"
+#include "Animator.h"
 
-WS2812Animator::WS2812Animator():
+Animator::Animator():
 Task("ws2812AnimatorTask", 4096, configMAX_PRIORITIES - 3){
 
 }
 
-WS2812Animator::~WS2812Animator() {
+Animator::~Animator() {
 	stop();
 }
 
-void WS2812Animator::start(AnimationUpdateCallback animUpdateCallback,
+void Animator::start(AnimationUpdateCallback animUpdateCallback,
 		AnimationFinishedCallback animFinishedCallback, uint16_t duration,
 		uint16_t updateInterval) {
 
@@ -34,7 +34,7 @@ void WS2812Animator::start(AnimationUpdateCallback animUpdateCallback,
 	Task::start();
 }
 
-void WS2812Animator::stop() {
+void Animator::stop() {
 	running_ = false;
 	if (animationFinishedCallback_) {
 		animationFinishedCallback_();
@@ -43,7 +43,7 @@ void WS2812Animator::stop() {
 	Task::stop();
 }
 
-void WS2812Animator::run() {
+void Animator::run() {
 	if (!running_) {
 		return;
 	}
@@ -75,17 +75,17 @@ void WS2812Animator::run() {
 	}
 }
 
-void WS2812Animator::runAsync(void* data) {
+void Animator::runAsync(void* data) {
 	for(;;) {
 		run();
 		delay(1);
 	}
 }
 
-int WS2812Animator::getStep(long elapsed, long t, int v) {
+int Animator::getStep(long elapsed, long t, int v) {
 	return ((elapsed)%t)*v/t;
 }
 
-float WS2812Animator::getStepFloat(long elapsed, long t, float v) {
+float Animator::getStepFloat(long elapsed, long t, float v) {
 	return ((elapsed)%t)*v/t;
 }

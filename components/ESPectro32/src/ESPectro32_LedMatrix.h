@@ -10,6 +10,7 @@
 
 #include <Adafruit_GFX.h>
 #include <Adafruit_IS31FL3731.h>
+#include <functional>
 
 static const uint8_t PROGMEM LED_MATRIX_EMOTICON_SMILE[] =
 { B00000000,
@@ -43,6 +44,35 @@ static const uint8_t PROGMEM LED_MATRIX_ICON_HEART[] =
   B00000000
 };
 
+static const uint8_t PROGMEM LED_MATRIX_ICON_HEART_OUTLINE[] =
+{ B01101100,
+  B10101010,
+  B10111010,
+  B01000100,
+  B00101000,
+  B00010000,
+  B00000000,
+  B00000000
+};
+
+static const uint8_t PROGMEM LED_MATRIX_ICON_HEART_SMALL[] =
+{ B00000000,
+  B01101100,
+  B01111100,
+  B00111000,
+  B00010000,
+  B00000000,
+  B00000000,
+  B00000000
+};
+
+//Add your own icon bitmap :)
+
+/**
+ * @brief The class represents Led Matrix
+ *
+ * It overrides drawPixel method of its base class, as the matrix size is different.
+ */
 class ESPectro32_LedMatrix: public Adafruit_IS31FL3731 {
 public:
 	ESPectro32_LedMatrix();

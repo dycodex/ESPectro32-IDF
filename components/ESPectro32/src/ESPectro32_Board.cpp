@@ -175,6 +175,12 @@ float ESPectro32_Board::readPhotoTransistorVoltage(adc_bits_width_t bitWidth, ad
 	return readAnalogVoltage(ESPECTRO32_PHOTO_TR_ANALOG_CHANNEL, bitWidth, atten);
 }
 
+int ESPectro32_Board::readOnBoardHallSensor() {
+	adc1_config_width(ADC_WIDTH_12Bit);
+	int val = hall_sensor_read();
+	return val;
+}
+
 void ESPectro32_Board::scanI2C() {
 	ESPECTRO32_INFO_PRINT("I2C scanning with SDA=%d, CLK=%d", ESPECTRO32_SDAPIN, ESPECTRO32_SCLPIN);
 	Wire.begin(ESPECTRO32_SDAPIN, ESPECTRO32_SCLPIN);

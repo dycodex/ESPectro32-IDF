@@ -33,8 +33,8 @@ void ESPectro32_RGBLED_Animation::stop() {
 }
 
 void ESPectro32_RGBLED_Animation::start(
-		WS2812Animator::AnimationUpdateCallback animUpdateCallback,
-		WS2812Animator::AnimationFinishedCallback animFinishedCallback,
+		Animator::AnimationUpdateCallback animUpdateCallback,
+		Animator::AnimationFinishedCallback animFinishedCallback,
 		uint16_t duration, uint16_t updateInterval) {
 
 	if (rgbLed_.getPixelCount() == 0) {
@@ -60,9 +60,9 @@ void ESPectro32_RGBLED_Animation::run() {
 	}
 }
 
-WS2812Animator* ESPectro32_RGBLED_Animation::getAnimatorPtr() {
+Animator* ESPectro32_RGBLED_Animation::getAnimatorPtr() {
 	if (animator_ == NULL) {
-		animator_ = new WS2812Animator();
+		animator_ = new Animator();
 	}
 
 	return animator_;
@@ -81,7 +81,7 @@ void ESPectro32_RGBLED_FadeInOutAnimation::start(uint16_t duration, uint16_t cou
 
 	animMaxCount_ = count;
 
-	ESPectro32_RGBLED_Animation::start([this](const WS2812Animator::AnimationParam param) {
+	ESPectro32_RGBLED_Animation::start([this](const Animator::AnimationParam param) {
 
 		//Triangle function
 		//y = (A/P) * (P - abs(x % (2*P) - P))
@@ -118,4 +118,47 @@ void ESPectro32_RGBLED_FadeInOutAnimation::start(uint16_t duration, uint16_t cou
 }
 
 void ESPectro32_RGBLED_FadeInOutAnimation::stop() {
+}
+
+
+
+ESPectro32_RGBLED_GlowingAnimation::ESPectro32_RGBLED_GlowingAnimation(ESPectro32_RGBLED& rgbLed, RgbLedColor_t& defaultColor)
+: ESPectro32_RGBLED_Animation(rgbLed, defaultColor) {
+}
+
+ESPectro32_RGBLED_GlowingAnimation::~ESPectro32_RGBLED_GlowingAnimation() {
+}
+
+void ESPectro32_RGBLED_GlowingAnimation::start(uint16_t duration, uint16_t count) {
+
+	animMaxCount_ = count;
+
+	ESPectro32_RGBLED_Animation::start([this, duration, count](const Animator::AnimationParam param) {
+
+		if (forceStop_) {
+			return;
+		}
+
+		float s = animator_->getStepFloat(param.elapsed, duration, TWO_PI);
+		float k = (-cos(s)+1)/2;
+
+		//RGBLED_ANIM_DEBUG_PRINT("s = %f, k = %f", s, k);
+
+		for (uint8_t pixNum = 0; pixNum < this->RgbLed().getPixelCount(); pixNum++) {
+			this->RgbLed().setPixel(pixNum, defaultColor_.scale(k));
+		}
+
+		this->RgbLed().show();
+
+	}, [this, duration, count]() {
+
+		RGBLED_ANIM_DEBUG_PRINT("Animation DONE");
+		if (this->animCompletedCb_ != NULL) {
+			this->animCompletedCb_();
+		}
+
+	}, (duration * count), 10);
+}
+
+void ESPectro32_RGBLED_GlowingAnimation::stop() {
 }
