@@ -176,8 +176,8 @@ float ESPectro32_Board::readPhotoTransistorVoltage(adc_bits_width_t bitWidth, ad
 }
 
 void ESPectro32_Board::scanI2C() {
-	ESPECTRO32_INFO_PRINT("I2C scanning with SDA=%d, CLK=%d", SDAPIN, SCLPIN);
-	Wire.begin(SDAPIN, SCLPIN);
+	ESPECTRO32_INFO_PRINT("I2C scanning with SDA=%d, CLK=%d", ESPECTRO32_SDAPIN, ESPECTRO32_SCLPIN);
+	Wire.begin(ESPECTRO32_SDAPIN, ESPECTRO32_SCLPIN);
 	int address;
 	int foundCount = 0;
 	for (address=1; address<127; address++) {

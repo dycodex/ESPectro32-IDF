@@ -25,6 +25,7 @@ void ESPectro32_RGBLED_Animation::start() {
 }
 
 void ESPectro32_RGBLED_Animation::stop() {
+	forceStop_ = true;
 	animationPrevStarted_ = false;
 	if (animator_ != NULL) {
 		animator_->stop();
@@ -65,4 +66,56 @@ WS2812Animator* ESPectro32_RGBLED_Animation::getAnimatorPtr() {
 	}
 
 	return animator_;
+}
+
+
+
+ESPectro32_RGBLED_FadeInOutAnimation::ESPectro32_RGBLED_FadeInOutAnimation(
+		ESPectro32_RGBLED& rgbLed, RgbLedColor_t& defaultColor): ESPectro32_RGBLED_Animation(rgbLed, defaultColor) {
+}
+
+ESPectro32_RGBLED_FadeInOutAnimation::~ESPectro32_RGBLED_FadeInOutAnimation() {
+}
+
+void ESPectro32_RGBLED_FadeInOutAnimation::start(uint16_t duration, uint16_t count) {
+
+	animMaxCount_ = count;
+
+	ESPectro32_RGBLED_Animation::start([this](const WS2812Animator::AnimationParam param) {
+
+		//Triangle function
+		//y = (A/P) * (P - abs(x % (2*P) - P))
+		float x = param.progress * 100;
+		float P = 100/2;
+		float b = (100/P) * (P - abs(((int)x % (int)(2*P)) - P));
+
+		//float b = sin(param.progress * PI) * 100;
+//		ESP_LOGI(TAG, "Progress %f", b);
+
+		for (uint8_t pixNum = 0; pixNum < this->RgbLed().getPixelCount(); pixNum++) {
+			this->RgbLed().setBrightnessPercent(pixNum, b);
+		}
+
+		this->RgbLed().show();
+
+	}, [this, duration, count]() {
+
+		animCompletedCount_++;
+
+		if (animCompletedCount_ >= animMaxCount_ || forceStop_) {
+			RGBLED_ANIM_DEBUG_PRINT("Animation DONE");
+			if (this->animCompletedCb_ != NULL) {
+				this->animCompletedCb_();
+			}
+
+			return;
+		}
+
+		forceStop_ = false;
+		this->start(duration, count);
+
+	}, duration, 10);
+}
+
+void ESPectro32_RGBLED_FadeInOutAnimation::stop() {
 }

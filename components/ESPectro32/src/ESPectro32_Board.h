@@ -23,15 +23,16 @@
 #define ESPECTRO32_INFO_PRINT(...)   ESP_LOGI("ESPECTRO32", __VA_ARGS__);
 #define ESPECTRO32_ERROR_PRINT(...)  ESP_LOGE("ESPECTRO32", __VA_ARGS__);
 
-#define SDAPIN (GPIO_NUM_21)
-#define SCLPIN (GPIO_NUM_22)
-
 class ESPectro32_Board {
 public:
 	ESPectro32_Board();
 	virtual ~ESPectro32_Board();
 
+	/**
+	 * @brief Must be called as soon as possible to do initialization stuffs.
+	 */
 	bool begin();
+
 	ESPectro32_RGBLED& RgbLed();
 
 	//LED convenient methods
@@ -51,10 +52,26 @@ public:
 	void toggleLED();
 
 	//Buttons
+	/**
+	 * @brief Get Button "A" object.
+	 *
+	 * This method is for getting Button "A" object so that you can attach event handlers in order to detect click, double click, and long press.
+	 * Button A is connected to GPIO 0.
+	 *
+	 * @return The Button A object.
+	 */
 	ESPectro32_Button &ButtonA();
+
+	/**
+	 * @brief Get Button "B" object.
+	 *
+	 * This method is for getting Button "B" object so that you can attach event handlers in order to detect click, double click, and long press.
+	 * Button A is connected to GPIO 4.
+	 *
+	 * @return The Button B object.
+	 */
 	ESPectro32_Button &ButtonB();
 
-	//LED Matrix
 	/**
 	 * @brief Get Led Matrix object.
 	 *
@@ -76,6 +93,7 @@ public:
 	 * @return The analog reading in integer
 	 */
 	int readAnalog(adc1_channel_t channel, adc_bits_width_t bitWidth = ADC_WIDTH_12Bit, adc_atten_t atten = ADC_ATTEN_6db);
+
 	/**
 	 * @brief Conveniently read analog data converted to its voltage value
 	 *
@@ -89,6 +107,9 @@ public:
 	int readPhotoTransistorValue(adc_bits_width_t bitWidth = ADC_WIDTH_12Bit, adc_atten_t atten = ADC_ATTEN_6db);
 	float readPhotoTransistorVoltage(adc_bits_width_t bitWidth = ADC_WIDTH_12Bit, adc_atten_t atten = ADC_ATTEN_6db);
 
+	/**
+	 * @brief Scan attached I2C peripherals
+	 */
 	void scanI2C();
 
 private:

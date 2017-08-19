@@ -62,7 +62,8 @@ extern "C" {
 #include <ESPectro32_RGBLED_Animation.h>
 
 RgbLedColor_t aCol(200, 0, 80);
-ESPectro32_RGBLED_Animation fadeAnim(ESPectro32.RgbLed(), aCol);
+//ESPectro32_RGBLED_Animation fadeAnim(ESPectro32.RgbLed(), aCol);
+ESPectro32_RGBLED_FadeInOutAnimation fadeAnim(ESPectro32.RgbLed(), aCol);
 
 void app_main(void)
 {
@@ -104,7 +105,9 @@ void app_main(void)
 //	ESPectro32.RgbLed().show();
 
 
+	fadeAnim.start(2000, 3);
 
+	/*
 	fadeAnim.start([](const WS2812Animator::AnimationParam param) {
 
 		//Triangle function
@@ -126,7 +129,8 @@ void app_main(void)
 
 		ESP_LOGI(TAG, "Animation DONE");
 
-	}, 1000, 10);
+	}, 1000, 10);*/
+
 
 	ESPectro32.ButtonA().onButtonUp([]() {
 		ESP_LOGI(TAG, "Button A up");

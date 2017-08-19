@@ -9,7 +9,7 @@
 #include <GPIO.h>
 
 /* the global instance pointer */
-static xQueueHandle button_evt_queue = NULL;
+//static xQueueHandle button_evt_queue = NULL;
 
 ESPectro32_Button::ESPectro32_Button(uint8_t gpio, boolean activeHigh):
 gpioNumber_(gpio), activeHigh_(activeHigh), Task("ESPectro32_Button_Task", 2048, configMAX_PRIORITIES - 2) {
@@ -23,7 +23,7 @@ gpioNumber_(gpio), activeHigh_(activeHigh), Task("ESPectro32_Button_Task", 2048,
 }
 
 ESPectro32_Button::~ESPectro32_Button() {
-	// TODO Auto-generated destructor stub
+
 }
 
 /*
