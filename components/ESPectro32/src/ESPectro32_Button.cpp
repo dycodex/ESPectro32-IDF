@@ -44,7 +44,7 @@ ESPectro32_Button::Button_State ESPectro32_Button::getState() {
 }
 
 void ESPectro32_Button::runAsync(void *data) {
-	uint8_t currGpioNumber = (uint8_t)data;
+	uint8_t currGpioNumber = *((uint8_t*)data);
 
 	//uint8_t io_num;
 	for(;;) {
