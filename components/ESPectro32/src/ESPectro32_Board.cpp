@@ -7,6 +7,7 @@
 
 #include "ESPectro32_Board.h"
 
+
 ESPectro32_Board::ESPectro32_Board() {
 	// TODO Auto-generated constructor stub
 
@@ -119,6 +120,59 @@ ESPectro32_LedMatrix& ESPectro32_Board::LedMatrix() {
 	}
 
 	return *ledMatrix_;
+}
+
+int ESPectro32_Board::readAnalog(adc1_channel_t channel, adc_bits_width_t bitWidth, adc_atten_t atten) {
+
+	adc1_config_width(bitWidth);
+	adc1_config_channel_atten(channel, atten);
+	int val = adc1_get_voltage(channel);
+
+	return val;
+}
+
+float ESPectro32_Board::readAnalogVoltage(adc1_channel_t channel, adc_bits_width_t bitWidth, adc_atten_t atten) {
+
+	int val = readAnalog(channel, bitWidth, atten);
+
+	int bitWidthVal = 0, fullScaleMV = 0;
+
+	switch(bitWidth) {
+	case ADC_WIDTH_9Bit:
+		bitWidthVal = 511; break;
+	case ADC_WIDTH_10Bit:
+		bitWidthVal = 1023; break;
+	case ADC_WIDTH_11Bit:
+		bitWidthVal = 2047; break;
+	case ADC_WIDTH_12Bit:
+		bitWidthVal = 4095; break;
+	default:
+		bitWidthVal = 4095; break;
+	}
+
+	switch(atten) {
+	case ADC_ATTEN_0db:
+		fullScaleMV = 1100; break;
+	case ADC_ATTEN_2_5db:
+		fullScaleMV = 1500; break;
+	case ADC_ATTEN_6db:
+		fullScaleMV = 2200; break;
+	case ADC_ATTEN_11db:
+		fullScaleMV = 3300; break;
+	default:
+		fullScaleMV = 2200; break;
+	}
+
+	float voltage = val * ((fullScaleMV * 1.0f/1000) / (bitWidthVal * 1.0f));
+	return voltage;
+}
+
+int ESPectro32_Board::readPhotoTransistorValue(adc_bits_width_t bitWidth, adc_atten_t atten) {
+	return readAnalog(ESPECTRO32_PHOTO_TR_ANALOG_CHANNEL, bitWidth, atten);
+}
+
+float ESPectro32_Board::readPhotoTransistorVoltage(adc_bits_width_t bitWidth, adc_atten_t atten) {
+	return readAnalogVoltage(ESPECTRO32_PHOTO_TR_ANALOG_CHANNEL, bitWidth, atten);
 }
 
 void ESPectro32_Board::scanI2C() {

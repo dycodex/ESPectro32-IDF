@@ -16,4 +16,6 @@
 #define ESPECTRO32_BUTTON_A_PIN                         0
 #define ESPECTRO32_BUTTON_B_PIN                         4
 
+#define ESPECTRO32_PHOTO_TR_ANALOG_CHANNEL              ADC1_CHANNEL_0
+
 #endif //ESPECTRO_CONSTANTS_H_H

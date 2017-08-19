@@ -103,6 +103,8 @@ void app_main(void)
 //	ESPectro32.RgbLed().clear();
 //	ESPectro32.RgbLed().show();
 
+
+
 	fadeAnim.start([](const WS2812Animator::AnimationParam param) {
 
 		//Triangle function
@@ -140,5 +142,10 @@ void app_main(void)
 
 	ESPectro32.LedMatrix().drawBitmap(0, 0, LED_MATRIX_ICON_HEART, 7, 7, 200);
 
+	for(;;) {
+		int trVal = ESPectro32.readPhotoTransistorValue();
+		ESP_LOGI(TAG, "Photo TR: %d %f", trVal, ESPectro32.readPhotoTransistorVoltage());
+		vTaskDelay(400/portTICK_PERIOD_MS);
+	}
 }
 
