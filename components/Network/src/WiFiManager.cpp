@@ -10,6 +10,11 @@
 #include <sstream>
 #include "soc/soc.h"
 
+#define NVS_NAMESPACE "DCX_WIFI_STA"
+#define NVS_STA_SSID_NAME_KEY 	"STA_SSID_NAME"
+#define NVS_STA_SSID_PASS_KEY 	"STA_SSID_PASS"
+#define NVS_STA_CONFGRD_KEY 	  	"STA_CONFGRD"
+
 #define IOT_CHECK(tag, a, ret)  if(!(a)) {                                             	\
         ESP_LOGE(tag,"%s:%d (%s)", __FILE__, __LINE__, __FUNCTION__);      				\
         return (ret);                                                                   \
@@ -42,6 +47,10 @@ WiFiManager::WiFiManager():
 }
 
 WiFiManager::~WiFiManager() {
+	if (savedStaConfig == NULL) {
+		free(savedStaConfig);
+		savedStaConfig = NULL;
+	}
 }
 
 static esp_err_t wifi_event_handler(void *ctx, system_event_t *event)
@@ -66,10 +75,15 @@ void WiFiManager::notifyEvent(system_event_t* event) {
 			// Set event bit to sync with other tasks.
 			xEventGroupSetBits(s_wifi_event_group, WIFI_CONNECTED_EVT);
 
-			//check saved wifi setting to determine this is a new connection
+			//Save WiFi
+			if (newConnection_) {
+				wifi_config_t local_wifi_config;
+				esp_wifi_get_config(ESP_IF_WIFI_STA, &local_wifi_config);
+				saveStaConfig(&local_wifi_config.sta);
+			}
 
 			if (wifiConnectedCallback_) {
-				wifiConnectedCallback_(true);
+				wifiConnectedCallback_(newConnection_);
 			}
 
 			break;
@@ -95,7 +109,7 @@ void WiFiManager::notifyEvent(system_event_t* event) {
 
 }
 
-esp_err_t WiFiManager::begin(wifi_mode_t mode) {
+esp_err_t WiFiManager::begin(wifi_mode_t mode, bool autoConnect) {
 	currentMode_ = mode;
 
 #if DEBUG_EN
@@ -120,10 +134,129 @@ esp_err_t WiFiManager::begin(wifi_mode_t mode) {
 
 //    xEventGroupClearBits(s_wifi_event_group, WIFI_CONNECTED_EVT);
 
+    if (savedStaConfig == NULL) {
+    		savedStaConfig = (wifi_sta_config_t*)malloc(sizeof(wifi_sta_config_t));
+    }
+    esp_err_t loadRes = loadSavedStaConfig(savedStaConfig);
+    if (loadRes == ESP_OK) {
+    		if (autoConnect) {
+    			//ESP_LOGI(TAG, "SSID %s, PASS %s", savedStaConfig->ssid, savedStaConfig->password);
+    			return connectToAP((const char*)savedStaConfig->ssid, (const char*)savedStaConfig->password);
+    		}
+    }
+    else {
+    		ESP_LOGI(TAG, "No WiFi credentials stored. Call connectToAP or start SmartConfig");
+    		if (autoConnect) {
+    			//start smart config?
+    			startSmartConfig();
+    		}
+    }
+
+    return ESP_OK;
+}
+
+esp_err_t WiFiManager::saveStaConfig(wifi_sta_config_t *sta_config) {
+	esp_err_t ret;
+	nvs_handle my_handle;
+
+	ESP_LOGI(TAG, "Saving WiFi creds to NVS");
+
+	ret = nvs_open(NVS_NAMESPACE, NVS_READWRITE, &my_handle);
+	if (ret != ESP_OK) {
+		ESP_LOGE(TAG, "Error (%d) opening NVS!\n", ret);
+	}
+
+	char *ssid = (char*)sta_config->ssid;
+	char *pass = (char*)sta_config->password;
+	if (strlen(ssid) > 0) {
+		ret = nvs_set_str(my_handle, NVS_STA_SSID_NAME_KEY, ssid);
+	}
+
+	if (strlen(pass) > 0) {
+		ret = nvs_set_str(my_handle, NVS_STA_SSID_PASS_KEY, pass);
+	}
+
+	return ret;
+}
+
+esp_err_t WiFiManager::loadSavedStaConfig(wifi_sta_config_t *saved_sta_config) {
+
+    esp_err_t ret;
+    nvs_handle my_handle;
+
+    size_t required_size;
+    char* sta_ssid = "";
+    char* sta_password = "";
+
+    ESP_LOGI(TAG, "Opening Non-Volatile Storage (NVS)\n");
+
+    ret = nvs_open(NVS_NAMESPACE, NVS_READWRITE, &my_handle);
+
+    // TODO factory RESET.
+    // nvs_erase_key(my_handle, "sta_ssid");
+    // nvs_erase_key(my_handle, "sta_password");
+
+    if (ret != ESP_OK) {
+        ESP_LOGE(TAG, "Error (%d) opening NVS\n", ret);
+        return ESP_FAIL;
+    }
+
+    ret = nvs_get_str(my_handle, NVS_STA_SSID_NAME_KEY, NULL, &required_size);
+    switch (ret) {
+        case ESP_OK:
+            sta_ssid = (char*)malloc(required_size);
+
+            ret = nvs_get_str(my_handle, NVS_STA_SSID_NAME_KEY, sta_ssid, &required_size);
+            strncpy((char *)saved_sta_config->ssid, sta_ssid, required_size);
+            free(sta_ssid);
+
+            ESP_LOGI(TAG, "Read wifi ssid from NVS %s\n", sta_ssid);
+            break;
+        case ESP_ERR_NVS_NOT_FOUND:
+            ESP_LOGE(TAG, "The ssid NVS value is not initialized yet!\n");
+            break;
+        default:
+            ESP_LOGE(TAG, "NVS Error (%d) reading!\n", ret);
+    }
+
+    required_size = 0;
+
+    ret = nvs_get_str(my_handle, NVS_STA_SSID_PASS_KEY, NULL, &required_size);
+    switch (ret) {
+        case ESP_OK:
+            sta_password = (char*)malloc(required_size);
+
+            ret = nvs_get_str(my_handle, NVS_STA_SSID_PASS_KEY, sta_password, &required_size);
+            strncpy((char *)saved_sta_config->password, sta_password, required_size);
+            free(sta_password);
+
+            ESP_LOGI(TAG, "Read wifi password from NVS\n");
+            break;
+        case ESP_ERR_NVS_NOT_FOUND:
+            ESP_LOGE(TAG, "The password NVS value is not initialized yet!\n");
+            break;
+        default:
+            ESP_LOGE(TAG, "NVS Error (%d) reading!\n", ret);
+    }
+
+    if (strlen(sta_ssid) == 0 || strlen(sta_password) == 0) {
+        return ESP_FAIL;
+    }
+
     return ESP_OK;
 }
 
 esp_err_t WiFiManager::connectToAP(const char* ssid, const char* pwd, uint32_t ticks_to_wait) {
+
+	if (savedStaConfig != NULL && strlen((const char*)savedStaConfig->ssid) > 0) {
+		if ((strcmp((const char*)savedStaConfig->ssid, ssid) != 0) || (strcmp((const char*)savedStaConfig->password, pwd) != 0)) {
+			ESP_LOGI(TAG, "Connecting to a new WiFi SSID");
+			newConnection_ = true;
+		}
+		else {
+			newConnection_ = false;
+		}
+	}
 
 	connectTimeout_ = ticks_to_wait;
 
@@ -360,4 +493,5 @@ esp_err_t WiFiManager::startSmartConfig(smartconfig_type_t sc_type, uint32_t tic
 
 	return ESP_OK;
 }
+
 

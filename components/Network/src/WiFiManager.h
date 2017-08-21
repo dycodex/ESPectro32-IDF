@@ -27,6 +27,8 @@
 #include "tcpip_adapter.h"
 #include "sys/time.h"
 #include "Task.h"
+#include "nvs_flash.h"
+#include "nvs.h"
 
 #define WIFIMANAGER_DEFAULT_TIMEOUT 60000/portTICK_PERIOD_MS
 
@@ -48,7 +50,7 @@ public:
 	WiFiManager();
 	virtual ~WiFiManager();
 
-	esp_err_t begin(wifi_mode_t mode);
+	esp_err_t begin(wifi_mode_t mode, bool autoConnect = true);
 	esp_err_t connectToAP(const char *ssid, const char *pwd, uint32_t ticks_to_wait = WIFIMANAGER_DEFAULT_TIMEOUT);
 	//esp_err_t connectAsync(const char *ssid, const char *pwd, uint32_t ticks_to_wait);
 	esp_err_t startSmartConfig(smartconfig_type_t sc_type = SC_TYPE_ESPTOUCH, uint32_t ticks_to_wait = WIFIMANAGER_DEFAULT_TIMEOUT);
@@ -92,6 +94,11 @@ private:
 	uint32_t connectTimeout_ = 0;
 
 	uint64_t lastConnectingCheckMicros_ = 0;
+
+	esp_err_t loadSavedStaConfig(wifi_sta_config_t *saved_sta_config);
+	esp_err_t saveStaConfig(wifi_sta_config_t *sta_config);
+	bool newConnection_ = false;
+	wifi_sta_config_t *savedStaConfig = NULL;
 };
 
 #endif /* COMPONENTS_NETWORK_SRC_WIFIMANAGER_H_ */

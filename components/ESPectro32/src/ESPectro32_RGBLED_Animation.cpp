@@ -26,6 +26,11 @@ void ESPectro32_RGBLED_Animation::start() {
 
 void ESPectro32_RGBLED_Animation::stop() {
 	forceStop_ = true;
+
+	//turn off
+	this->RgbLed().clear();
+	this->RgbLed().show();
+
 	animationPrevStarted_ = false;
 	if (animator_ != NULL) {
 		animator_->stop();
@@ -118,6 +123,7 @@ void ESPectro32_RGBLED_FadeInOutAnimation::start(uint16_t duration, uint16_t cou
 }
 
 void ESPectro32_RGBLED_FadeInOutAnimation::stop() {
+	ESPectro32_RGBLED_Animation::stop();
 }
 
 
@@ -161,4 +167,5 @@ void ESPectro32_RGBLED_GlowingAnimation::start(uint16_t duration, uint16_t count
 }
 
 void ESPectro32_RGBLED_GlowingAnimation::stop() {
+	ESPectro32_RGBLED_Animation::stop();
 }

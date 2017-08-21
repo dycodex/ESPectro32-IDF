@@ -21,8 +21,9 @@ extern "C" {
 RgbLedColor_t aCol(200, 0, 80);
 ESPectro32_RGBLED_GlowingAnimation glowAnim(ESPectro32.RgbLed(), aCol);
 
-#include <ESPectro32_LedMatrix_Animation.h>
-ESPectro32_LedMatrix_Animation ledMatrixAnim;
+#include <AppSetting.h>
+
+#include "examples/wifi_conn_anim.hpp"
 
 void app_main(void)
 {
@@ -34,6 +35,15 @@ void app_main(void)
 //	testSPIFFS();
 
 	ESPectro32.begin();
+
+	AppSetting.begin();
+	if (AppSetting.load() == ESP_OK) {
+		ESP_LOGI(TAG, "AppSetting available!");
+		AppSetting.printVals();
+	}
+	else {
+		ESP_LOGE(TAG, "AppSetting init FAILED!");
+	}
 
 	//Turn on/off LED once
 //	ESPectro32.turnOnLED();
@@ -80,21 +90,20 @@ void app_main(void)
 
 
 	//LED Matrix animation (only support 8 frames)
-	ledMatrixAnim.setLedMatrix(ESPectro32.LedMatrix());
-
-	ledMatrixAnim.addFrameWithData((uint8_t*)LED_MATRIX_ICON_HEART);
-	ledMatrixAnim.addFrameWithData((uint8_t*)LED_MATRIX_ICON_HEART_OUTLINE);
-	ledMatrixAnim.addFrameWithData((uint8_t*)LED_MATRIX_ICON_HEART);
-	ledMatrixAnim.addFrameWithData((uint8_t*)LED_MATRIX_ICON_HEART_OUTLINE);
-	ledMatrixAnim.addFrameWithDataCallback([](ESPectro32_LedMatrix &ledM) {
-		ledM.drawCircle(3, 3, 3, 200);
-	});
-	ledMatrixAnim.addFrameWithDataCallback([](ESPectro32_LedMatrix &ledM) {
-		ledM.fillCircle(3, 3, 3, 200);
-	});
-
-	ledMatrixAnim.start(3000);
-
+//	ledMatrixAnim.setLedMatrix(ESPectro32.LedMatrix());
+//
+//	ledMatrixAnim.addFrameWithData((uint8_t*)LED_MATRIX_ICON_HEART);
+//	ledMatrixAnim.addFrameWithData((uint8_t*)LED_MATRIX_ICON_HEART_OUTLINE);
+//	ledMatrixAnim.addFrameWithData((uint8_t*)LED_MATRIX_ICON_HEART);
+//	ledMatrixAnim.addFrameWithData((uint8_t*)LED_MATRIX_ICON_HEART_OUTLINE);
+//	ledMatrixAnim.addFrameWithDataCallback([](ESPectro32_LedMatrix &ledM) {
+//		ledM.drawCircle(3, 3, 3, 200);
+//	});
+//	ledMatrixAnim.addFrameWithDataCallback([](ESPectro32_LedMatrix &ledM) {
+//		ledM.fillCircle(3, 3, 3, 200);
+//	});
+//
+//	ledMatrixAnim.start(3000);
 
 	//Button handlers
 	ESPectro32.ButtonA().onButtonUp([]() {
@@ -108,6 +117,10 @@ void app_main(void)
 	ESPectro32.ButtonB().onButtonUp([]() {
 		ESP_LOGI(TAG, "Button B up");
 	});
+
+	//load example
+	connect_wifi();
+
 
 //	for(;;) {
 //		int trVal = ESPectro32.readPhotoTransistorValue();

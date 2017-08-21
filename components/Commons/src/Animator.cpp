@@ -18,12 +18,13 @@ Animator::~Animator() {
 
 void Animator::start(AnimationUpdateCallback animUpdateCallback,
 		AnimationFinishedCallback animFinishedCallback, uint16_t duration,
-		uint16_t updateInterval) {
+		uint16_t updateInterval, bool repeat) {
 
 	if (updateInterval > 0) {
 		updateInterval_ = updateInterval;
 	}
 
+	repeat_ = repeat;
 	duration_ = duration;
 	animationUpdateCallback_ = animUpdateCallback;
 	animationFinishedCallback_ = animFinishedCallback;
@@ -32,6 +33,10 @@ void Animator::start(AnimationUpdateCallback animUpdateCallback,
 	elapsed_ = 0;
 
 	Task::start();
+}
+
+void Animator::doRepeat() {
+	elapsed_ = 0;
 }
 
 void Animator::stop() {
@@ -54,7 +59,13 @@ void Animator::run() {
 	if (delta > updateInterval_) {
 
 		if (duration_ != 0 && elapsed_ > duration_) {
-			stop();
+			if (!repeat_) {
+				stop();
+			}
+			else {
+				doRepeat();
+			}
+
 			return;
 		}
 
@@ -89,3 +100,5 @@ int Animator::getStep(long elapsed, long t, int v) {
 float Animator::getStepFloat(long elapsed, long t, float v) {
 	return ((elapsed)%t)*v/t;
 }
+
+

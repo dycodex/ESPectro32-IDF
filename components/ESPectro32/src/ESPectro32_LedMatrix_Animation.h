@@ -52,7 +52,7 @@ public:
 
 	void start(Animator::AnimationUpdateCallback animUpdateCallback, Animator::AnimationFinishedCallback animFinishedCallback,
 					   uint16_t duration = 0, uint16_t updateInterval = 0);
-	void start(uint16_t duration = 0);
+	void start(uint16_t duration = 0, bool repeat = false);
 	void stop();
 	void run();
 
@@ -64,6 +64,16 @@ protected:
 	Animator::AnimationFinishedCallback animCompletedCb_ = NULL;
 	Animator *animator_ = NULL;
 	Animator *getAnimatorPtr();
+};
+
+class ESPectro32_LedMatrix_ScrollTextAnimation: public ESPectro32_LedMatrix_Animation {
+public:
+	ESPectro32_LedMatrix_ScrollTextAnimation();
+	~ESPectro32_LedMatrix_ScrollTextAnimation();
+
+	void scrollText(const char *text, uint16_t duration = 0, bool repeat = false);
+private:
+	char *scrolledText_ = NULL;
 };
 
 #endif /* COMPONENTS_ESPECTRO32_SRC_ESPECTRO32_LEDMATRIX_ANIMATION_H_ */

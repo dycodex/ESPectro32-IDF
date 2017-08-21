@@ -7,7 +7,7 @@
 # please read the ESP-IDF documents if you need to do this.
 #
 
-COMPONENT_ADD_INCLUDEDIRS := includes test
-COMPONENT_SRCDIRS := . test
+COMPONENT_ADD_INCLUDEDIRS := includes explore examples
+COMPONENT_SRCDIRS := . explore examples
 
 # CXXFLAGS += -fpermissive

@@ -38,7 +38,7 @@ public:
 	virtual ~Animator();
 
 	void start(AnimationUpdateCallback animUpdateCallback, AnimationFinishedCallback animFinishedCallback,
-			   uint16_t duration = 0, uint16_t updateInterval = 0);
+			   uint16_t duration = 0, uint16_t updateInterval = 0, bool repeat = false);
 	void stop();
 	void run();
 	void runAsync(void *data);
@@ -54,6 +54,8 @@ private:
 	boolean running_ = false;
 	uint16_t updateInterval_ = 100, elapsed_ = 0, duration_ = 0;
 	uint32_t lastUpdated_ = 0;
+	bool repeat_ = false;
+	void doRepeat();
 };
 
 #endif /* COMPONENTS_MAGICBUTTON_SRC_WS2812ANIMATOR_H_ */

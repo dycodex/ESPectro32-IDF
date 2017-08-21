@@ -77,7 +77,12 @@ void ESPectro32_LedMatrix_Animation::run() {
 	}
 }
 
-void ESPectro32_LedMatrix_Animation::start(uint16_t duration) {
+void ESPectro32_LedMatrix_Animation::start(uint16_t duration, bool repeat) {
+
+	if (ledMatrix_ == NULL) {
+		return;
+	}
+
 	if (frameCount_ == 0) {
 		return;
 	}
@@ -88,19 +93,27 @@ void ESPectro32_LedMatrix_Animation::start(uint16_t duration) {
 
 	getAnimatorPtr()->start([this](const Animator::AnimationParam param) {
 
+		if (forceStop_) {
+			return;
+		}
+
 		float index = param.progress * frameCount_;
 
 		if (index < frameCount_) {
 			this->ledMatrix_->displayFrame(index);
 		}
 
-	}, [this]() {
+	}, [this, duration, repeat]() {
 		//printf("LEDM ANIM DONE\n");
 		if (this->animCompletedCb_ != NULL) {
 			this->animCompletedCb_();
 		}
 
-	}, duration, 10);
+//		if (repeat) {
+//			this->start(duration, repeat);
+//		}
+
+	}, duration, 10, repeat);
 }
 
 Animator* ESPectro32_LedMatrix_Animation::getAnimatorPtr() {
@@ -111,3 +124,60 @@ Animator* ESPectro32_LedMatrix_Animation::getAnimatorPtr() {
 	return animator_;
 }
 
+
+
+ESPectro32_LedMatrix_ScrollTextAnimation::ESPectro32_LedMatrix_ScrollTextAnimation() {
+}
+
+ESPectro32_LedMatrix_ScrollTextAnimation::~ESPectro32_LedMatrix_ScrollTextAnimation() {
+	if (scrolledText_ != NULL) {
+		free(scrolledText_);
+	}
+}
+
+void ESPectro32_LedMatrix_ScrollTextAnimation::scrollText(const char *text, uint16_t duration, bool repeat) {
+
+	if (ledMatrix_ == NULL) {
+		return;
+	}
+
+	//printf("Text length: %d\n", strlen(text));
+
+	if (scrolledText_ == NULL) {
+		scrolledText_ = (char*)malloc((strlen(text) + 1));
+		strncpy(scrolledText_, text, strlen(text));
+	}
+
+	if (duration == 0) {
+		duration = strlen(scrolledText_) * 50 * 6; //6 is char width in pixel
+	}
+
+	this->ledMatrix_->setFrame(0);
+	this->ledMatrix_->clear();
+	this->ledMatrix_->setTextSize(1);
+	this->ledMatrix_->setTextWrap(false);  // we dont want text to wrap so it scrolls nicely
+	this->ledMatrix_->setTextColor(100);
+	this->ledMatrix_->displayFrame(0);
+
+	getAnimatorPtr()->start([this, duration, text](const Animator::AnimationParam param) {
+
+		if (forceStop_) {
+			return;
+		}
+
+		int x = (int)(param.progress * (strlen(scrolledText_) * 6));
+		//printf("X = %d\n", x);
+
+		this->ledMatrix_->clear();
+		this->ledMatrix_->setCursor((-1*x),0);
+		this->ledMatrix_->print(scrolledText_);
+
+	}, [this]() {
+
+		//printf("LEDM TEXT ANIM DONE\n");
+		if (this->animCompletedCb_ != NULL) {
+			this->animCompletedCb_();
+		}
+
+	}, duration, 50, repeat);
+}
