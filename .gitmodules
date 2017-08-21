@@ -1,0 +1,3 @@
+[submodule "components/ESPectro32"]
+	path = components/ESPectro32
+	url = https://github.com/dycodex/ESPectro32
