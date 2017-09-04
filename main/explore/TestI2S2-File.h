@@ -5,6 +5,8 @@
 #include "Arduino.h"
 #include <SPIFFS.h>
 #include <FS.h>
+#include "SD.h"
+#include "SPI.h"
 
 extern "C" {
 #include "driver/i2s.h"
@@ -199,7 +201,8 @@ void tryI2SPlay(void *p)
 {
 	ESP_LOGI(TAG2, "Opening file for playing");
 
-	fs::FS fs = SPIFFS;
+	//fs::FS fs = SPIFFS;
+	fs::FS fs = SD;
 
 	i2s_config_t i2s_config_tx = {
 		mode : (i2s_mode_t)(I2S_MODE_MASTER | I2S_MODE_TX),
@@ -226,7 +229,8 @@ void tryI2SPlay(void *p)
 
     // Open file for reading
 	ESP_LOGI(TAG2, "Reading file");
-	File file = fs.open("/indonesia.wav", FILE_READ);
+	//File file = fs.open("/indonesia.wav", FILE_READ);
+	File file = fs.open("/WAV/SHARK.WAV", FILE_READ);
 
 	if (!file) {
 		ESP_LOGE(TAG2, "Failed to open file for reading");

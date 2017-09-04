@@ -11,6 +11,7 @@
  #include <FabrickClient.h>
 
  HardwareSerial loraSerial(1);
+
  static void testLoRa() {
  	loraSerial.begin(9600, SERIAL_8N1, 33, 23);
  	FabrickLoraClient.begin(&loraSerial);
@@ -25,6 +26,32 @@
 
  	//FabrickLoraClient.send("81ef46e9", 1, 0, 3303, temp_data_s, 4);
  	FabrickLoraClient.send("c1a12d25", 1, 0, 3303, temp_data_s, 4);
+ }
+
+ static void testLoRaSerialRelay() {
+  	loraSerial.begin(9600, SERIAL_8N1, 33, 23);
+
+  	Serial.println("Waiting...");
+
+  	loraSerial.println("AT");
+
+	for(;;) {
+
+		vTaskDelay(1/portTICK_PERIOD_MS);
+		while (loraSerial.available() > 0) {
+			Serial.write(loraSerial.read());
+		}
+
+		vTaskDelay(1/portTICK_PERIOD_MS);
+		while (Serial.available() > 0) {
+			loraSerial.write(Serial.read());
+
+		}
+		vTaskDelay(1/portTICK_PERIOD_MS);
+	}
+
+	Serial.println("DONE...");
+	vTaskDelete(NULL);
  }
 
 #endif /* MAIN_EXPLORE_TESTFABRICK_H_ */

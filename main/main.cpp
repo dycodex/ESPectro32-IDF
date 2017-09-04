@@ -16,27 +16,44 @@ extern "C" {
 #include <ESPectro32_Board.h>
 #include <AppSetting.h>
 
-#include <ex_wifi_conn_anim.hpp>
+//#include <ex_sdcard.hpp>
+//#include "explore/TestI2S2-File.h"
+#include "explore/TestWavFile.hpp"
 
-void app_main(void)
-{
+void setup() {
 	initArduino();
 	Serial.begin(115200);
 
-	ESP_LOGI(TAG, "It begins!");
+	Serial.println("It begins!");
 
 	ESPectro32.begin();
 
-	AppSetting.begin();
-	if (AppSetting.load() == ESP_OK) {
-		ESP_LOGI(TAG, "AppSetting available!");
-		AppSetting.printVals();
-	}
-	else {
-		ESP_LOGE(TAG, "AppSetting init FAILED!");
-	}
-
 	//load examples
-	load_ex_wifi_conn_anim();
+	//load_ex_sdcard();
+	if(!SD.begin(ESPECTRO32_SDCARD_CSPIN)){
+		ESP_LOGE(TAG, "Card Mount Failed");
+		return;
+	}
+	//tryI2SPlay(NULL);
+
+	ESPectro32.ButtonB().onButtonUp([]() {
+		ESP_LOGI(TAG, "Button B up");
+		parseWavFile();
+	});
+
+	//parseWavFile();
+}
+
+void loop() {
+	delay(1000);
+}
+
+void app_main(void)
+{
+	setup();
+
+	for(;;) {
+		loop();
+	}
 }
 

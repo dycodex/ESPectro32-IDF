@@ -77,28 +77,6 @@ void testLedMatrix(void *p) {
 	// // }
 	// delay(1000);
 
-	// ledmatrix.setLEDPWM(0, 200, 0);
-	// ledmatrix.setLEDPWM(1 , 200, 0);
-	// ledmatrix.setLEDPWM(2 , 200, 0);
-	// ledmatrix.setLEDPWM(3 , 200, 0);
-	// ledmatrix.setLEDPWM(4 , 200, 0);
-	// ledmatrix.setLEDPWM(5 , 200, 0);
-	// ledmatrix.setLEDPWM(6 , 200, 0);
-
-	// ledmatrix.setLEDPWM(7, 200, 0);
-	// ledmatrix.setLEDPWM(8, 200, 0);
-
-	// ledmatrix.setLEDPWM(0x00, 100, 0);
-	// ledmatrix.setLEDPWM(0x02, 100, 0);
-	// ledmatrix.setLEDPWM(0x04, 100, 0);
-	// ledmatrix.setLEDPWM(0x06, 100, 0);
-	// ledmatrix.setLEDPWM(0x08, 100, 0);
-	// ledmatrix.setLEDPWM(0x0A, 100, 0);
-	// ledmatrix.setLEDPWM(0x0C, 100, 0);
-	// ledmatrix.setLEDPWM(0x0E, 100, 0);
-
-	// ledmatrix.selectBank(0);
-
 	// for (uint8_t i=0; i<6; i++) {
 	// 	Wire.beginTransmission(0x74);
 	// 	Wire.write((byte) 0x24+i*24);
