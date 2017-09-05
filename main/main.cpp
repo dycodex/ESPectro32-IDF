@@ -18,7 +18,8 @@ extern "C" {
 
 //#include <ex_sdcard.hpp>
 //#include "explore/TestI2S2-File.h"
-#include "explore/TestWavFile.hpp"
+//#include "explore/TestWavFile.hpp"
+#include "explore/TestBleUart.hpp"
 
 void setup() {
 	initArduino();
@@ -29,22 +30,27 @@ void setup() {
 	ESPectro32.begin();
 
 	//load examples
-	//load_ex_sdcard();
-	if(!SD.begin(ESPECTRO32_SDCARD_CSPIN)){
-		ESP_LOGE(TAG, "Card Mount Failed");
-		return;
-	}
-	//tryI2SPlay(NULL);
 
-	ESPectro32.ButtonB().onButtonUp([]() {
-		ESP_LOGI(TAG, "Button B up");
-		parseWavFile();
-	});
+//	if(!SD.begin(ESPECTRO32_SDCARD_CSPIN)){
+//		ESP_LOGE(TAG, "Card Mount Failed");
+//		return;
+//	}
 
-	//parseWavFile();
+//	ESPectro32.ButtonB().onButtonUp([]() {
+//		ESP_LOGI(TAG, "Button B up");
+//		parseWavFile();
+//	});
+
+	test_ble_uart();
 }
 
 void loop() {
+	if (deviceConnected) {
+		Serial.printf("*** Sent Value: %d ***\n", txValue);
+		pCharacteristic->setValue(&txValue, 1);
+		pCharacteristic->notify();
+		txValue++;
+	}
 	delay(1000);
 }
 
