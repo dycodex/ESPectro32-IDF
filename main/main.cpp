@@ -18,8 +18,12 @@ extern "C" {
 
 //#include <ex_sdcard.hpp>
 //#include "explore/TestI2S2-File.h"
-//#include "explore/TestWavFile.hpp"
-#include "explore/TestBleUart.hpp"
+#include "explore/TestWavFile.hpp"
+//#include "explore/TestBleUart.hpp"
+#include "explore/TestSPIFFS.h"
+
+const float OFFSET = 512;
+const float SCALE = 512;
 
 void setup() {
 	initArduino();
@@ -41,17 +45,31 @@ void setup() {
 //		parseWavFile();
 //	});
 
-	test_ble_uart();
+//	test_ble_uart();
+
+	playWavFile();
+
+//	testSPIFFS();
 }
 
 void loop() {
-	if (deviceConnected) {
-		Serial.printf("*** Sent Value: %d ***\n", txValue);
-		pCharacteristic->setValue(&txValue, 1);
-		pCharacteristic->notify();
-		txValue++;
-	}
-	delay(1000);
+//	if (deviceConnected) {
+//		Serial.printf("*** Sent Value: %d ***\n", txValue);
+//		pCharacteristic->setValue(&txValue, 1);
+//		pCharacteristic->notify();
+//		txValue++;
+//	}
+//	delay(1000);
+
+//	float in, out;
+//	for (in = 0; in < 2*PI; in = in + 0.001) {
+//		out = sin(in) * SCALE + OFFSET;
+//		//ESP_LOGI(TAG, "x = %f, y = %f", in, out);
+//		ESPectro32.analogWrite(15, out);
+//
+//		//just for feeding the dog
+//		delay(1);
+//	}
 }
 
 void app_main(void)
