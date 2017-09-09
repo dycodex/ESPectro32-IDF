@@ -25,6 +25,10 @@ extern "C" {
 const float OFFSET = 512;
 const float SCALE = 512;
 
+#include "NotificationService.h"
+
+NotificationService notif;
+
 void setup() {
 	initArduino();
 	Serial.begin(115200);
@@ -47,9 +51,12 @@ void setup() {
 
 //	test_ble_uart();
 
-	playWavFile();
+//	playWavFile();
 
 //	testSPIFFS();
+
+	notif.begin();
+	notif.notifyLocked();
 }
 
 void loop() {
