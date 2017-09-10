@@ -101,10 +101,10 @@ void AudioPlayer::runAsync(void* data) {
 
 	printf("Start playing\n");
 
-	if (audioRenderer_ == NULL) {
+	//if (audioRenderer_ == NULL) {
 		audioRenderer_ = new Renderer();
 		audioRenderer_->renderer_init();
-	}
+	//}
 
 	audioRenderer_->renderer_start();
 
@@ -132,7 +132,7 @@ void AudioPlayer::runAsync(void* data) {
 	}
 
 	audioRenderer_->renderer_stop();
-	//audioRenderer_->renderer_destroy();
+	audioRenderer_->renderer_destroy();
 
 	vTaskDelete(NULL);
 }

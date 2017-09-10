@@ -12,14 +12,27 @@ NotificationService::NotificationService() {
 }
 
 NotificationService::~NotificationService() {
+	if (audioPlayer_ != NULL) {
+		audioPlayer_->stop();
+		delete audioPlayer_;
+		audioPlayer_ = NULL;
+	}
+
+	if (ledMatrixAnim_ != NULL) {
+		ledMatrixAnim_->stop();
+		delete ledMatrixAnim_;
+		ledMatrixAnim_ = NULL;
+	}
 }
 
 void NotificationService::begin() {
+	getAudioPlayerPtr();
 }
 
 void NotificationService::notifyUnlocked() {
 	//getAudioPlayerPtr()->playAsync("/WAV/SHARK.WAV");
-	ESPectro32.LedMatrix().clear();
+	//ESPectro32.LedMatrix().clear();
+	getLedMatrixAnimPtr()->clearFrames();
 	getLedMatrixAnimPtr()->addFrameWithData((uint8_t*)LED_MATRIX_UNLOCK_1);
 	getLedMatrixAnimPtr()->addFrameWithData((uint8_t*)LED_MATRIX_UNLOCK_2);
 	getLedMatrixAnimPtr()->addFrameWithData((uint8_t*)LED_MATRIX_UNLOCK_3);
@@ -45,7 +58,8 @@ ESPectro32_LedMatrix_Animation* NotificationService::getLedMatrixAnimPtr() {
 }
 
 void NotificationService::notifyLocked() {
-	ESPectro32.LedMatrix().clear();
+	//ESPectro32.LedMatrix().clear();
+	getLedMatrixAnimPtr()->clearFrames();
 	getLedMatrixAnimPtr()->addFrameWithData((uint8_t*)LED_MATRIX_UNLOCK_3);
 	getLedMatrixAnimPtr()->addFrameWithData((uint8_t*)LED_MATRIX_UNLOCK_2);
 	getLedMatrixAnimPtr()->addFrameWithData((uint8_t*)LED_MATRIX_UNLOCK_1);
@@ -62,7 +76,8 @@ void NotificationService::notifyLocked() {
 }
 
 void NotificationService::notifyDocked() {
-	ESPectro32.LedMatrix().clear();
+	//ESPectro32.LedMatrix().clear();
+	getLedMatrixAnimPtr()->clearFrames();
 	getLedMatrixAnimPtr()->addFrameWithData((uint8_t*)LED_MATRIX_DOCKING_1);
 	getLedMatrixAnimPtr()->addFrameWithData((uint8_t*)LED_MATRIX_DOCKING_2);
 	getLedMatrixAnimPtr()->addFrameWithData((uint8_t*)LED_MATRIX_DOCKING_3);
@@ -79,6 +94,7 @@ void NotificationService::notifyDocked() {
 }
 
 void NotificationService::notifyWait() {
+	ESPectro32.LedMatrix().begin();
 	ESPectro32.LedMatrix().setFrame(0);
 	ESPectro32.LedMatrix().clear();
 	ESPectro32.LedMatrix().drawBitmap(0, 0, (uint8_t*)LED_MATRIX_HOURGLASS, 7, 7, 255);
@@ -86,6 +102,7 @@ void NotificationService::notifyWait() {
 }
 
 void NotificationService::notifySlowdown() {
+	ESPectro32.LedMatrix().begin();
 	ESPectro32.LedMatrix().setFrame(0);
 	ESPectro32.LedMatrix().clear();
 	ESPectro32.LedMatrix().drawBitmap(0, 0, (uint8_t*)LED_MATRIX_SLOWDOWN, 7, 7, 255);
@@ -93,12 +110,14 @@ void NotificationService::notifySlowdown() {
 }
 
 void NotificationService::clear() {
-	if (audioPlayer_ != NULL) {
-		audioPlayer_->stop();
-	}
+//	if (audioPlayer_ != NULL) {
+//		audioPlayer_->stop();
+//	}
 	if (ledMatrixAnim_ != NULL) {
 		ledMatrixAnim_->stop();
 	}
+
+	ESPectro32.LedMatrix().setFrame(0);
 	ESPectro32.LedMatrix().clear();
 }
 

@@ -54,9 +54,13 @@ void setup() {
 //	playWavFile();
 
 //	testSPIFFS();
-
+//
 	notif.begin();
+	notif.notifyDocked();
+	delay(8000);
 	notif.notifyLocked();
+	delay(8000);
+	notif.notifyWait();
 }
 
 void loop() {
