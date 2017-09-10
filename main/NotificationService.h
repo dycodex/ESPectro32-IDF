@@ -102,11 +102,34 @@ static const uint8_t PROGMEM LED_MATRIX_SLOWDOWN[] =
   B00000000
 };
 
+static const uint8_t PROGMEM LED_MATRIX_NOT_OK[] =
+{ B10000010,
+  B01000100,
+  B00101000,
+  B00010000,
+  B00101000,
+  B01000100,
+  B10000010,
+  B00000000
+};
+
+static const uint8_t PROGMEM LED_MATRIX_OK[] =
+{ B00000000,
+  B00000000,
+  B00000010,
+  B00000100,
+  B10001000,
+  B01010000,
+  B00100000,
+  B00000000
+};
+
 #define NOTIF_VOICE_UNLOCK 		"/WAV/B_UNLOCKED.WAV"
 #define NOTIF_VOICE_DOCKED 		"/WAV/B_DOCKED.WAV"
 #define NOTIF_VOICE_LOCK 		"/WAV/B_LOCKED.WAV"
 #define NOTIF_VOICE_WAIT 		"/WAV/WAIT.WAV"
 #define NOTIF_VOICE_SLOWDOWN		"/WAV/SLOWDOWN.WAV"
+#define NOTIF_VOICE_ALERT		"/WAV/ALERT.WAV"
 
 class NotificationService {
 public:
@@ -119,6 +142,8 @@ public:
 	void notifyDocked();
 	void notifyWait();
 	void notifySlowdown();
+	void notifyWarning();
+	void notifyOK();
 	void clear();
 
 private:

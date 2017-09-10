@@ -20,14 +20,17 @@ extern "C" {
 //#include "explore/TestI2S2-File.h"
 #include "explore/TestWavFile.hpp"
 //#include "explore/TestBleUart.hpp"
-#include "explore/TestSPIFFS.h"
+//#include "explore/TestSPIFFS.h"
+//#include "explore/TestNFC.hpp"
+#include "DockingService.h"
 
 const float OFFSET = 512;
 const float SCALE = 512;
 
 #include "NotificationService.h"
-
 NotificationService notif;
+
+DockingService dock;
 
 void setup() {
 	initArduino();
@@ -54,13 +57,36 @@ void setup() {
 //	playWavFile();
 
 //	testSPIFFS();
-//
-	notif.begin();
-	notif.notifyDocked();
-	delay(8000);
-	notif.notifyLocked();
-	delay(8000);
-	notif.notifyWait();
+
+//	notif.begin();
+//	notif.notifyDocked();
+//	delay(8000);
+//	notif.notifyLocked();
+//	delay(8000);
+//	notif.notifyWait();
+
+//	testNFC(NULL);
+
+	if (!dock.begin()) {
+		return;
+	}
+
+	dock.onDockingAllowed([](const char* UUID, bool allowed) {
+		if (allowed) {
+			ESP_LOGI(TAG, "DOCKING is allowed at POLE ID %s", UUID);
+			//do other things
+			notif.notifyOK();
+
+			dock.stop(); //stop to conserve energy.
+		}
+		else {
+			//Notify warning
+			ESP_LOGI(TAG, "DOCKING is NOT fuckin' allowed at POLE ID %s", UUID);
+			notif.notifyWarning();
+		}
+	});
+
+	dock.start(NULL);
 }
 
 void loop() {

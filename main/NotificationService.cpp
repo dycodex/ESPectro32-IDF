@@ -121,6 +121,21 @@ void NotificationService::clear() {
 	ESPectro32.LedMatrix().clear();
 }
 
+void NotificationService::notifyOK() {
+	ESPectro32.LedMatrix().begin();
+	ESPectro32.LedMatrix().setFrame(0);
+	ESPectro32.LedMatrix().clear();
+	ESPectro32.LedMatrix().drawBitmap(0, 0, (uint8_t*)LED_MATRIX_OK, 7, 7, 255);
+}
+
+void NotificationService::notifyWarning() {
+	ESPectro32.LedMatrix().begin();
+	ESPectro32.LedMatrix().setFrame(0);
+	ESPectro32.LedMatrix().clear();
+	ESPectro32.LedMatrix().drawBitmap(0, 0, (uint8_t*)LED_MATRIX_NOT_OK, 7, 7, 255);
+	//getAudioPlayerPtr()->playAsync(NOTIF_VOICE_ALERT);
+}
+
 AudioPlayer* NotificationService::getAudioPlayerPtr() {
 	if (audioPlayer_ == NULL) {
 		audioPlayer_ = new AudioPlayer();
