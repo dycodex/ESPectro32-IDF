@@ -6,6 +6,7 @@
  */
 
 #include "AudioPlayer.h"
+#include <ESPectro32_Board.h>
 #include <FS.h>
 #include "SD.h"
 #include "SPI.h"
@@ -34,10 +35,12 @@ AudioPlayer::~AudioPlayer() {
 void AudioPlayer::begin() {
 	ESP_LOGI(TAG_AUDIO, "Opening file for playing");
 
-	if(!SD.begin(ESPECTRO32_SDCARD_CSPIN)){
-		ESP_LOGE(TAG_AUDIO, "Card Mount Failed");
-		return;
-	}
+//	if(!SD.begin(ESPECTRO32_SDCARD_CSPIN)){
+//		ESP_LOGE(TAG_AUDIO, "Card Mount Failed");
+//		return;
+//	}
+
+	ESPectro32.beginSDCard();
 }
 
 void AudioPlayer::playAsync(const char* path) {

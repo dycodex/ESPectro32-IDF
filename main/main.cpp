@@ -16,97 +16,24 @@ extern "C" {
 #include <ESPectro32_Board.h>
 #include <AppSetting.h>
 
-//#include <ex_sdcard.hpp>
-//#include "explore/TestI2S2-File.h"
-#include "explore/TestWavFile.hpp"
-//#include "explore/TestBleUart.hpp"
-//#include "explore/TestSPIFFS.h"
-//#include "explore/TestNFC.hpp"
-#include "DockingService.h"
 
-const float OFFSET = 512;
-const float SCALE = 512;
-
-#include "NotificationService.h"
-NotificationService notif;
-
-DockingService dock;
+#include <ex_ledmatrix_anim.hpp>
 
 void setup() {
 	initArduino();
 	Serial.begin(115200);
 
-	Serial.println("It begins!");
+	ESP_LOGI(TAG, "It begins!");
 
 	ESPectro32.begin();
 
 	//load examples
 
-//	if(!SD.begin(ESPECTRO32_SDCARD_CSPIN)){
-//		ESP_LOGE(TAG, "Card Mount Failed");
-//		return;
-//	}
-
-//	ESPectro32.ButtonB().onButtonUp([]() {
-//		ESP_LOGI(TAG, "Button B up");
-//		parseWavFile();
-//	});
-
-//	test_ble_uart();
-
-//	playWavFile();
-
-//	testSPIFFS();
-
-//	notif.begin();
-//	notif.notifyDocked();
-//	delay(8000);
-//	notif.notifyLocked();
-//	delay(8000);
-//	notif.notifyWait();
-
-//	testNFC(NULL);
-
-	if (!dock.begin()) {
-		return;
-	}
-
-	dock.onDockingAllowed([](const char* UUID, bool allowed) {
-		if (allowed) {
-			ESP_LOGI(TAG, "DOCKING is allowed at POLE ID %s", UUID);
-			//do other things
-			notif.notifyOK();
-
-			dock.stop(); //stop to conserve energy.
-		}
-		else {
-			//Notify warning
-			ESP_LOGI(TAG, "DOCKING is NOT fuckin' allowed at POLE ID %s", UUID);
-			notif.notifyWarning();
-		}
-	});
-
-	dock.start(NULL);
+	load_ex_ledmatrix_anim();
 }
 
 void loop() {
-//	if (deviceConnected) {
-//		Serial.printf("*** Sent Value: %d ***\n", txValue);
-//		pCharacteristic->setValue(&txValue, 1);
-//		pCharacteristic->notify();
-//		txValue++;
-//	}
-//	delay(1000);
 
-//	float in, out;
-//	for (in = 0; in < 2*PI; in = in + 0.001) {
-//		out = sin(in) * SCALE + OFFSET;
-//		//ESP_LOGI(TAG, "x = %f, y = %f", in, out);
-//		ESPectro32.analogWrite(15, out);
-//
-//		//just for feeding the dog
-//		delay(1);
-//	}
 }
 
 void app_main(void)
