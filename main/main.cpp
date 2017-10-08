@@ -6,6 +6,8 @@
 #include "sdkconfig.h"
 
 #include <Arduino.h>
+#define _GLIBCXX_USE_C99
+#include <string>
 
 const static char *TAG ="APP";
 
@@ -16,8 +18,8 @@ extern "C" {
 #include <ESPectro32_Board.h>
 #include <AppSetting.h>
 
-
-#include <ex_ledmatrix_anim.hpp>
+//#include "explore/test_makestro_cloud.hpp"
+#include "explore/test_alora_makestro.hpp"
 
 void setup() {
 	initArduino();
@@ -26,22 +28,43 @@ void setup() {
 	ESP_LOGI(TAG, "It begins!");
 
 	ESPectro32.begin();
+	// testSPIFFS();
+	
+//	ESPectro32.scanI2C();
+//  delay(500);
+//	if (!ESPectro32.beginSDCard()) {
+//		return;
+//	}
 
 	//load examples
+//	test_makestro_cloud();
+//	test_alora_makestro();
 
-	load_ex_ledmatrix_anim();
 }
 
 void loop() {
 
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
 void app_main(void)
 {
 	setup();
 
-	for(;;) {
-		loop();
-	}
+	 for(;;) {
+	 	loop();
+	 }
 }
 

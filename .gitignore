@@ -9,3 +9,6 @@ _backup/
 spiffs_files/
 .vscode/
 main/testcode/
+components/ATM90E26/
+components/PN532/
+components/Fabrick/

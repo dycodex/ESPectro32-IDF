@@ -1,0 +1,57 @@
+{
+    "description": "Library for Alora board by DycodeX", 
+    "repository": {
+        "url": "https://github.com/dycodex/Alora.git", 
+        "type": "git"
+    }, 
+    "platforms": [
+        "espressif32"
+    ], 
+    "frameworks": [
+        "arduino"
+    ], 
+    "version": "0.2.0", 
+    "dependencies": [
+        {
+            "name": "Adafruit BME280 Library"
+        }, 
+        {
+            "name": "Adafruit Unified Sensor"
+        }, 
+        {
+            "name": "ClosedCube HDC1080"
+        }, 
+        {
+            "name": "SparkFun CCS811 Breakout"
+        }, 
+        {
+            "name": "SparkFun SX1509 IO Expander"
+        }, 
+        {
+            "name": "RTClib"
+        }, 
+        {
+            "name": "NeoGPS"
+        }
+    ], 
+    "authors": [
+        {
+            "maintainer": true, 
+            "name": "Alwin Arrasyid", 
+            "url": null, 
+            "email": "winter@dycode.com"
+        }, 
+        {
+            "url": null, 
+            "maintainer": false, 
+            "email": "an.dri@me.com", 
+            "name": "Andri Yadi"
+        }
+    ], 
+    "keywords": [
+        "alora", 
+        "espectro32"
+    ], 
+    "id": 1801, 
+    "name": "Alora"
+}

@@ -1,0 +1,34 @@
+{
+    "version": "1.0.4", 
+    "repository": {
+        "url": "https://github.com/adafruit/Adafruit_BME280_Library.git", 
+        "type": "git"
+    }, 
+    "platforms": [
+        "atmelavr"
+    ], 
+    "description": "Arduino library for BME280 humidity and pressure sensors", 
+    "frameworks": [
+        "arduino"
+    ], 
+    "dependencies": {
+        "frameworks": "arduino", 
+        "name": "Adafruit Unified Sensor"
+    }, 
+    "authors": [
+        {
+            "maintainer": false, 
+            "name": "Adafruit Industries", 
+            "url": "https://github.com/adafruit", 
+            "email": null
+        }
+    ], 
+    "keywords": [
+        "pressure", 
+        "sensor", 
+        "temp", 
+        "humidity"
+    ], 
+    "id": 166, 
+    "name": "Adafruit BME280 Library"
+}

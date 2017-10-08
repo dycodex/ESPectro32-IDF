@@ -1,0 +1,46 @@
+{
+    "description": "A library to drive the AMS CCS811 by I2C.", 
+    "repository": {
+        "url": "https://github.com/sparkfun/SparkFun_CCS811_Arduino_Library", 
+        "type": "git"
+    }, 
+    "platforms": [
+        "atmelavr", 
+        "atmelsam", 
+        "espressif8266", 
+        "intel_arc32", 
+        "microchippic32", 
+        "nordicnrf51", 
+        "teensy", 
+        "timsp430"
+    ], 
+    "export": {
+        "exclude": [
+            "extras", 
+            "docs", 
+            "tests", 
+            "test", 
+            "*.doxyfile", 
+            "*.pdf"
+        ], 
+        "include": null
+    }, 
+    "authors": [
+        {
+            "maintainer": true, 
+            "name": "SparkFun Electronics", 
+            "url": null, 
+            "email": "techsupport@sparkfun.com"
+        }
+    ], 
+    "keywords": [
+        "sensors"
+    ], 
+    "id": 1626, 
+    "name": "SparkFun CCS811 Breakout", 
+    "frameworks": [
+        "arduino"
+    ], 
+    "version": "1.0.0", 
+    "homepage": null
+}

@@ -1,4 +1,4 @@
-menu "SPIffs Configuration"
+menu "mkspiffs Configuration"
 
 config SPIFFS_BASE_ADDR
     hex "SPIFFS Base address"
@@ -10,12 +10,12 @@ config SPIFFS_BASE_ADDR
 config SPIFFS_SIZE
     int "SPIFFS Size in bytes"
     range 262144 2097152
-    default 1048576
+    default 1503232
 
 config SPIFFS_LOG_BLOCK_SIZE
     int "SPIFFS Logical block size"
-    range 4098 65536
-    default 8192
+    range 4096 65536
+    default 4096
 
 config SPIFFS_LOG_PAGE_SIZE
     int "SPIFFS Logical page size"

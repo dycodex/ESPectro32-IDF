@@ -50,22 +50,22 @@ config MQTT_BUFFER_SIZE_BYTE
 
 config MQTT_MAX_HOST_LEN
     int "Maximum host name len - in byte"
-    range 32 256
+    range 32 512
     default 64
 
 config MQTT_MAX_CLIENT_LEN
     int "Maximum client id len - in byte"
-    range 4 128
+    range 4 512
     default 32
 
 config MQTT_MAX_USERNAME_LEN
     int "Maximum mqtt username len - in byte"
-    range 4 128
+    range 4 512
     default 32
 
 config MQTT_MAX_PASSWORD_LEN
     int "Maximum mqtt password len - in byte"
-    range 4 128
+    range 4 512
     default 32
 config MQTT_MAX_LWT_TOPIC
     int "Maximum mqtt lwt topic len - in byte"

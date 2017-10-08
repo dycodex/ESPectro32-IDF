@@ -10,4 +10,4 @@
 COMPONENT_ADD_INCLUDEDIRS := includes explore examples
 COMPONENT_SRCDIRS := . explore examples
 
-# CXXFLAGS += -fpermissive
+CXXFLAGS += -fpermissive

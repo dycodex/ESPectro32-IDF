@@ -1,0 +1,42 @@
+{
+    "description": "NMEA and ublox GPS parser, configurable to use as few as 10 bytes of RAM", 
+    "repository": {
+        "url": "https://github.com/SlashDevin/NeoGPS", 
+        "type": "git"
+    }, 
+    "platforms": [
+        "atmelavr", 
+        "atmelsam", 
+        "espressif8266", 
+        "intel_arc32"
+    ], 
+    "export": {
+        "exclude": [
+            "extras", 
+            "docs", 
+            "tests", 
+            "test", 
+            "*.doxyfile", 
+            "*.pdf"
+        ], 
+        "include": null
+    }, 
+    "authors": [
+        {
+            "maintainer": true, 
+            "name": "SlashDevin", 
+            "url": null, 
+            "email": null
+        }
+    ], 
+    "keywords": [
+        "communication"
+    ], 
+    "id": 1247, 
+    "name": "NeoGPS", 
+    "frameworks": [
+        "arduino"
+    ], 
+    "version": "4.2.3", 
+    "homepage": null
+}
