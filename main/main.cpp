@@ -18,7 +18,6 @@ extern "C" {
 #include <ESPectro32_Board.h>
 #include <AppSetting.h>
 
-//#include "explore/test_makestro_cloud.hpp"
 #include "explore/test_alora_makestro.hpp"
 
 void setup() {
@@ -37,8 +36,7 @@ void setup() {
 //	}
 
 	//load examples
-//	test_makestro_cloud();
-//	test_alora_makestro();
+	test_alora_makestro();
 
 }
 
