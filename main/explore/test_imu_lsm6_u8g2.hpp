@@ -45,7 +45,6 @@ double vImag_z[SAMPLING_SIZE];
 #define X_OFFSET 40
 #define U8X8_USE_PINS
 #include <U8g2lib.h>
-//#include "../components/u8g2/cppsrc/U8g2lib.h"
 #define OLED_SDA 21
 #define OLED_SCL 22
 

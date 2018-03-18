@@ -30,14 +30,13 @@ extern "C" {
 //#include "explore/test_makestro_cloud.hpp"
 
 //#include "explore/test_oled.hpp"
-//#include "testcode/test_tfa_codec.hpp"
-#include "explore/test_imu_lsm6_u8g2.hpp"
+//#include "explore/test_imu_lsm6_u8g2.hpp"
 //#include "explore/test_serial_relay.hpp"
 //#include "explore/test_ble_matrix.hpp"
 //#include "explore/test_i2s_file.h"
 //#include "explore/test_http_download.hpp"
 //#include "explore/test_play_wav_file.hpp"
-//#include "explore/test_alora_iotcentral.hpp"
+#include "explore/test_alora_iotcentral.hpp"
 
 void setup() {
 	initArduino();
@@ -62,9 +61,9 @@ void setup() {
 //	test_alora();
 //  	test_alora_gps();
 //	test_alora_makestro();
-//	test_alora_iotcentral();
+	test_alora_iotcentral();
 //  	test_eic_oled_makestro();
-	test_imu_lsm6();
+//	test_imu_lsm6();
 //	test_ble_matrix();
 }
 

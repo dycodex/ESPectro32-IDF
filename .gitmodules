@@ -4,3 +4,6 @@
 [submodule "components/esp-request"]
 	path = components/esp-request
 	url = https://github.com/tuanpmt/esp-request
+[submodule "components/u8g2"]
+	path = components/u8g2
+	url = https://github.com/andriyadi/u8g2

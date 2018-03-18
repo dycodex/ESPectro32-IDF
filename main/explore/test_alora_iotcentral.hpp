@@ -41,7 +41,6 @@ ESPectro32_RGBLED_GlowingAnimation glowAnim(ESPectro32.RgbLed(), aCol);
 
 #include <AzureIoTHubMQTTClient.h>
 
-//HostName=saas-iothub-77dfc9bb-86b1-48d8-8e1d-5cca69e14ef7.azure-devices.net;DeviceId=1l9b7qr;SharedAccessKey=9wwC0dus3S4TLHLJLVgZU0/H4/GkVqEGgd2XzhKPwUw=
 #define IOTHUB_HOSTNAME         "[YOUR_AZURE_IOT_HUB].azure-devices.net"
 #define DEVICE_ID               "[YOUR_DEVICE_ID]"
 #define DEVICE_KEY              "[YOUR_DEVICE_KEY]" //Primary key of the device
