@@ -22,7 +22,7 @@
 #define HASH_LENGTH 32
 
 static EventGroupHandle_t mqttEventGroup_ = NULL;
-static AzureIoTHubMQTTClient::mqtt_subscription_data_t lastSubcriptionData_;
+static AzureIoTHubMQTTClient::iothub_subscription_data_t lastSubcriptionData_;
 
 static void connected_cb(mqtt_client *self, mqtt_event_data_t *params)
 {
@@ -248,7 +248,8 @@ bool AzureIoTHubMQTTClient::reconnect() {
 	}
 
 	//do connect
-	String mqttUname =  String(mqttSettings_.host) + "/" + String(deviceId_) + "/DeviceClientType=0.1.0";
+	//String mqttUname =  String(mqttSettings_.host) + "/" + String(deviceId_) + "/DeviceClientType=0.1.0";
+	String mqttUname =  String(mqttSettings_.host) + "/" + String(deviceId_) + "/api-version=2016-11-14";
 	String mqttPassword = "SharedAccessSignature " + sasToken_;
 
 	strcpy(mqttSettings_.username, mqttUname.c_str());
@@ -345,6 +346,14 @@ void AzureIoTHubMQTTClient::runAsync(void* taskData) {
 	doTask(taskData);
 }
 
+void AzureIoTHubMQTTClient::onCloudCommand(String cmd, ClientCommandCallback callback) {
+	parseCommandAsJson_ = true;
+	if (commandsHandlerMap_.size() == 0) {
+	}
+
+	commandsHandlerMap_[cmd] = callback;
+}
+
 void AzureIoTHubMQTTClient::doTask(void* taskData) {
 
 	//Subscribe to service and get the data queue
@@ -369,7 +378,7 @@ void AzureIoTHubMQTTClient::doTask(void* taskData) {
 		EventBits_t uxBits;
 		uxBits = xEventGroupWaitBits(mqttEventGroup_, MQTT_STOP_REQ_EVT, false, false, 0);
 		if (uxBits & MQTT_STOP_REQ_EVT) {
-			AZURE_DEBUG_PRINT("MQTT stop.");
+			AZURE_DEBUG_PRINT("Azure IoT Hub stop.");
 			// Clear stop event bit
 			xEventGroupClearBits(mqttEventGroup_, MQTT_STOP_REQ_EVT);
 			break;
@@ -432,23 +441,6 @@ void AzureIoTHubMQTTClient::getTime(char *timeStr) {
 	strcpy(timeStr, strftime_buf);
 }
 
-/*
-void AzureIoTHubMQTTClient::registerToCloud() {
-	char payload[100];
-	snprintf ( payload, sizeof payload,
-			   "id=%s&ipAddress=%s",
-			   svc_.getAppSetting().stuff.device.id, svc_.getAppSetting().stuff.config.ipAddress
-	);
-
-	NET_DEBUG_PRINT("MQTT payload: %s", payload);
-	std::string _prefTopic = std::string(svc_.getAppSetting().stuff.account.userId) + "/" + std::string(svc_.getAppSetting().stuff.device.id);
-	std::string _pubpTopic = _prefTopic + "/props";
-	NET_DEBUG_PRINT("MQTT Topic: %s", _pubpTopic.c_str());
-
-	mqtt_publish(mqttClient_, _pubpTopic.c_str(), payload, strlen(payload), 0, 0);
-}
-*/
-
 void AzureIoTHubMQTTClient::changeEventTo(AzureIoTHubMQTTClientEvent event) {
 	currentEvent_ = event;
 
@@ -457,21 +449,59 @@ void AzureIoTHubMQTTClient::changeEventTo(AzureIoTHubMQTTClientEvent event) {
 	}
 }
 
-void AzureIoTHubMQTTClient::handleSubscriptionData(AzureIoTHubMQTTClient::mqtt_subscription_data_t &subsData) {
+void AzureIoTHubMQTTClient::handleSubscriptionData(AzureIoTHubMQTTClient::iothub_subscription_data_t &subsData) {
 
 	if (subsData.client != mqttClient_) {
 		AZURE_DEBUG_PRINT("NOT for me");
 		return;
 	}
 
-//	AZURE_DEBUG_PRINT("Sub topic: %s", subsData.topic.c_str());
-//	AZURE_DEBUG_PRINT("Sub payload: %s", subsData.payload.c_str());
+//	AZURE_DEBUG_PRINT("Subscribed topic: %s", subsData.topic.c_str());
+	AZURE_DEBUG_PRINT("Subscribed payload: %s", subsData.payload.c_str());
 
 	if (subscriptionDataAvailableCallback_) {
 		subscriptionDataAvailableCallback_(subsData);
 	}
 
-//	//if (subsData.topic.find_last_of("response") != std::string::npos) {
-//		svc_.notifyResponse(subsData.payload);
-//	//}
+	if (parseCommandAsJson_ && commandsHandlerMap_.size() > 0) {
+
+		//Command should be in format: {\"Name\":\"ActivateRelay\",\"Parameters\":{\"Activated\":0}}
+
+		//AZURE_DEBUG_PRINT("Process command");
+
+		cJSON *root = cJSON_Parse(subsData.payload.c_str());
+
+		String receivedCommandName = "";
+		cJSON *item = cJSON_GetObjectItem(root, "Name"); //Case-insensitive
+		if (item == NULL) {
+			return;
+		}
+		else {
+			receivedCommandName = String(item->valuestring);
+		}
+
+		AZURE_DEBUG_PRINT("Received command name: \"%s\"", receivedCommandName.c_str());
+
+		for (const auto &pair : commandsHandlerMap_) {
+
+			if (!((String)pair.first).equals(receivedCommandName)) {
+				continue;
+			}
+
+			cJSON *params = cJSON_GetObjectItem(root, "Parameters");
+			if (params == NULL) {
+				params = cJSON_GetObjectItem(root, "Value");
+				if (params == NULL) {
+					continue;
+				}
+			}
+
+			//AZURE_DEBUG_PRINT("Param key: %s", params->string);
+
+			ClientCommandCallback cb = pair.second;
+			//cb(pair.first, params->child);
+			cb(pair.first, params);
+		}
+	}
 }
+

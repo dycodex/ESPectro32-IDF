@@ -37,7 +37,8 @@ extern "C" {
 //#include "explore/test_i2s_file.h"
 //#include "explore/test_http_download.hpp"
 //#include "explore/test_play_wav_file.hpp"
-#include "explore/test_alora_iotcentral.hpp"
+//#include "explore/test_alora_iotcentral.hpp"
+#include "explore/test_azure_iot.hpp"
 
 void setup() {
 	initArduino();
@@ -62,7 +63,8 @@ void setup() {
 //	test_alora();
 //  	test_alora_gps();
 //	test_alora_makestro();
-	test_alora_iotcentral();
+//	test_alora_iotcentral();
+	test_azure_iot();
 //  	test_eic_oled_makestro();
 //	test_imu_lsm6();
 //	test_imu_adxl_u8g2();

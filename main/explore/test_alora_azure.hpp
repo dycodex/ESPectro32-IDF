@@ -37,9 +37,6 @@ ESPectro32_RGBLED_GlowingAnimation glowAnim(ESPectro32.RgbLed(), aCol);
 //#define IOTHUB_HOSTNAME         "[YOUR_IOT_HUB].azure-devices.net"
 //#define DEVICE_ID               "[YOUR_DEVICE_ID]"
 //#define DEVICE_KEY              "[YOUR_DEVICE_KEY]" //Primary key of the device
-#define IOTHUB_HOSTNAME         "dycodex.azure-devices.net"
-#define DEVICE_ID               "espectro-01"
-#define DEVICE_KEY              "nhWXiles4WXOsM7DQjnTCrTk8zuZGdK55hHYF3BniLU=" //Primary key of the device
 
 AzureIoTHubMQTTClient client(IOTHUB_HOSTNAME, DEVICE_ID, DEVICE_KEY);
 

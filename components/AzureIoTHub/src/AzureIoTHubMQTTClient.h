@@ -20,10 +20,12 @@
 #include <string.h>
 #include <Arduino.h>
 #include <functional>
+#include <map>
 
 #include <time.h>
 #include <sys/time.h>
 #include "apps/sntp/sntp.h"
+#include <cJSON.h>
 
 #include "Task.h"
 
@@ -47,7 +49,7 @@ extern "C" {
 class AzureIoTHubMQTTClient: public Task {
 public:
 
-	struct mqtt_subscription_data_t {
+	struct iothub_subscription_data_t {
 		mqtt_client *client;
 		String topic;
 		String payload;
@@ -63,7 +65,10 @@ public:
 	};
 
 	typedef std::function<void(const AzureIoTHubMQTTClientEvent event)> EventCallback;
-	typedef std::function<void(AzureIoTHubMQTTClient::mqtt_subscription_data_t &subsData)> SubscriptionDataAvailableCallback;
+	typedef std::function<void(AzureIoTHubMQTTClient::iothub_subscription_data_t &subsData)> SubscriptionDataAvailableCallback;
+
+	typedef std::function<void(String cmd, cJSON *item)> ClientCommandCallback;
+	typedef std::map<String, ClientCommandCallback> CommandsHandlerMap_t;
 
 	AzureIoTHubMQTTClient(const char* iotHubHostName, const char* deviceId, const char* deviceKey);
 	virtual ~AzureIoTHubMQTTClient();
@@ -85,6 +90,10 @@ public:
 	void onEvent(EventCallback cb) {
 		eventCallback_ = cb;
 	}
+
+	// Command should be in format similar to: {\"Name\":\"ActivateRelay\",\"Parameters\":{\"Activated\":0}}
+	// or: {\"Name\":\"ActivateRelay\",\"Value\":0}
+	void onCloudCommand(String cmd, ClientCommandCallback callback);
 
 private:
 
@@ -113,7 +122,10 @@ private:
 	String createIotHubSASToken(char *key, String url, long expire);
 
 	SubscriptionDataAvailableCallback subscriptionDataAvailableCallback_ = NULL;
-	void handleSubscriptionData(AzureIoTHubMQTTClient::mqtt_subscription_data_t &subdata);
+	void handleSubscriptionData(AzureIoTHubMQTTClient::iothub_subscription_data_t &subdata);
+
+	CommandsHandlerMap_t commandsHandlerMap_;
+	bool parseCommandAsJson_ = false;
 };
 
 #endif /* MAIN_NETWORKSERVICE_H_ */
