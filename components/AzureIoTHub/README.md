@@ -1,4 +1,4 @@
-#AzureIoTHubMQTTClient
+# AzureIoTHubMQTTClient
 
 It's unofficial Azure IoT Hub client library for ESP32, build with ESP-IDF framework that may be compatible with Arduino framework. It's similar effort as what I've done for ESP8266 as found [here](https://github.com/andriyadi/AzureIoTHubMQTTClient).
 
