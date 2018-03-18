@@ -15,7 +15,7 @@
 #include <arduinoFFT.h>
 #include <SPI.h>
 
-#define DISPLAY 		1
+#define USE_DISPLAY 		1
 #define IMU_SPI		0
 
 #define SAMPLING_SIZE 256//512 // Sampling point
@@ -39,12 +39,13 @@ double vImag_x[SAMPLING_SIZE];
 double vImag_y[SAMPLING_SIZE];
 double vImag_z[SAMPLING_SIZE];
 
-#if DISPLAY
+#if USE_DISPLAY
 
 #define LCD_H 64
 #define X_OFFSET 40
 #define U8X8_USE_PINS
 #include <U8g2lib.h>
+//#include "../components/u8g2/cppsrc/U8g2lib.h"
 #define OLED_SDA 21
 #define OLED_SCL 22
 
@@ -59,7 +60,7 @@ void imuDataReady() {
 	imuDataIsReady = true;
 }
 
-#if DISPLAY
+#if USE_DISPLAY
 static void displaySpectrum(double *fft_buffer, double max_val, int n) {
 
 	max_val = max_val / (LCD_H);
@@ -184,7 +185,7 @@ static void test_imu_lsm6() {
 
 	delay(500);
 
-#if DISPLAY
+#if USE_DISPLAY
 	u8g2.begin(); //wyswietlacz
 	u8g2.setContrast(200); //ustawienie kontrastu
 	u8g2.setFont(u8g2_font_5x7_tr); //czcionka
@@ -227,7 +228,7 @@ static void test_imu_lsm6() {
 	char buf_txt[16];
 	for (;;) {
 
-#if DISPLAY
+#if USE_DISPLAY
 		u8g2.clearBuffer(); //czyszczenie bufora LCD
 #endif
 
@@ -300,19 +301,19 @@ static void test_imu_lsm6() {
 			snprintf (buf_txt, 10, "%.2fHz", peak);
 		}
 		Serial.println(buf_txt);
-#if DISPLAY
+#if USE_DISPLAY
 		u8g2.drawStr(X_OFFSET + 5, 8, buf_txt);
 #endif
 		snprintf (buf_txt, 12, "%d", (int)maxAmp);
 		Serial.println(buf_txt);
-#if DISPLAY
+#if USE_DISPLAY
 		u8g2.drawStr(X_OFFSET + 5, 18, buf_txt);
 #endif
 
 		Serial.println("Restart");
 //		delay(1000);
 
-#if DISPLAY
+#if USE_DISPLAY
 		displaySpectrum(ax_in, maxAmp, SAMPLING_SIZE/2);
 		u8g2.sendBuffer();
 #endif

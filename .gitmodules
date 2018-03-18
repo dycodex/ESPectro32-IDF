@@ -1,3 +1,6 @@
 [submodule "components/ESPectro32"]
 	path = components/ESPectro32
 	url = https://github.com/dycodex/ESPectro32
+[submodule "components/esp-request"]
+	path = components/esp-request
+	url = https://github.com/tuanpmt/esp-request
