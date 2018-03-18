@@ -17,8 +17,8 @@ I took a liberty to write an easy to use class `AzureIoTHubMQTTClient`, all you 
 
 ## Dependencies
 
-* [esp32-mqtt](https://github.com/tuanpmt/esp32-mqtt)
-* [Task](https://github.com/dycodex/ESPectro32/tree/master/lib/FreeRTOS-Wrapper)
+* [esp32-mqtt](https://github.com/tuanpmt/esp32-mqtt). Make sure to activate `Enable MQTT over SSL` on espmqtt config.
+* [FreeRTOS Task wrapper](https://github.com/dycodex/ESPectro32/tree/master/lib/FreeRTOS-Wrapper)
 
 ## Getting Started
-Take a look the examples
+Take a look the [examples](https://github.com/dycodex/ESPectro32-IDF/tree/master/components/AzureIoTHub/examples)

@@ -1,5 +1,5 @@
 /*
- * NetworkService.cpp
+ * AzureIoTHubMQTTClient.cpp
  *
  *  Created on: Jun 12, 2017
  *      Author: andri
@@ -53,37 +53,8 @@ static void publish_cb(mqtt_client *self, mqtt_event_data_t *params)
 }
 static void data_cb(mqtt_client *self, mqtt_event_data_t *params)
 {
-//	NET_DEBUG_PRINT("Got subs data");
-
     mqtt_client *client = (mqtt_client *)self;
     mqtt_event_data_t *event_data = (mqtt_event_data_t *)params;
-
-    /*
-    if (subscriptionDataQueue_) {
-
-    	mqtt_subscription_data_t subscriptionData = {};
-    	subscriptionData.client = client;
-
-        if (event_data->data_offset == 0) {
-
-            char *topic = (char *)malloc(event_data->topic_length + 1);
-            memcpy(topic, event_data->topic, event_data->topic_length);
-            topic[event_data->topic_length] = 0;
-//            NET_DEBUG_PRINT("Sub topic: %s\n", topic);
-            subscriptionData.topic.assign(topic, event_data->topic_length + 1);
-            free(topic);
-        }
-
-        char *data = malloc(event_data->data_length + 1);
-        memcpy(data, event_data->data, event_data->data_length);
-        data[event_data->data_length] = 0;
-//        subscriptionData.payload = std::string(data);
-        subscriptionData.payload.assign(data, event_data->data_length + 1);
-        free(data);
-
-        xQueueSend(subscriptionDataQueue_, &subscriptionData, 0);
-    }
-    */
 
     //save to lastSubcriptionData_
 
@@ -267,7 +238,7 @@ bool AzureIoTHubMQTTClient::reconnect() {
 	uxBits = xEventGroupWaitBits(mqttEventGroup_, MQTT_CONNECTED_EVT, false, false, portMAX_DELAY);
 
 	if (uxBits & MQTT_CONNECTED_EVT) {
-		//NET_DEBUG_PRINT("MQTT Ready!");
+		//AZURE_DEBUG_PRINT("MQTT Ready!");
 	}
 
 	String _respTopic = "devices/" + String(deviceId_) + "/messages/devicebound/#";
@@ -308,7 +279,7 @@ void AzureIoTHubMQTTClient::run() {
 
 	uxBits = xEventGroupWaitBits(mqttEventGroup_, MQTT_SUBSDATA_EVT, true, false, 10); //clear on exit
 	if (uxBits & MQTT_SUBSDATA_EVT) {
-		//NET_DEBUG_PRINT("MQTT Data Ready: %s", lastSubcriptionData_.topic.c_str());
+		//AZURE_DEBUG_PRINT("MQTT Data Ready: %s", lastSubcriptionData_.topic.c_str());
 		handleSubscriptionData(lastSubcriptionData_);
 	}
 
@@ -319,7 +290,7 @@ void AzureIoTHubMQTTClient::run() {
 
 	char* jsonString;
 	if (xQueueReceive(this->requestDataQueue_, &jsonString, 100/portTICK_PERIOD_MS) == pdFALSE) {
-		//NET_DEBUG_PRINT("NO DATA QUEUED");
+		//AZURE_DEBUG_PRINT("NO DATA QUEUED");
 		return;
 	}
 
@@ -327,7 +298,7 @@ void AzureIoTHubMQTTClient::run() {
 	uxBits = xEventGroupWaitBits(mqttEventGroup_, MQTT_CONNECTED_EVT, false, false, portMAX_DELAY);
 
 	if (uxBits & MQTT_CONNECTED_EVT) {
-		//NET_DEBUG_PRINT("MQTT Ready!");
+		//AZURE_DEBUG_PRINT("MQTT Ready!");
 	}
 
 
@@ -336,7 +307,7 @@ void AzureIoTHubMQTTClient::run() {
 	AZURE_DEBUG_PRINT("MQTT payload: %s", payload);
 
 	String _pubpTopic = "devices/" + String(deviceId_) + "/messages/events/";
-	//NET_INFO_PRINT("MQTT Topic: %s", _pubpTopic.c_str());
+	//AZURE_DEBUG_PRINT("MQTT Topic: %s", _pubpTopic.c_str());
 
 	mqtt_publish(mqttClient_, _pubpTopic.c_str(), payload, msgLen, 0, 0);
 

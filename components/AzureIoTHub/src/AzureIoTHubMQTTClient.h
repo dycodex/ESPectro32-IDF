@@ -1,12 +1,12 @@
 /*
- * NetworkService.h
+ * AzureIoTHubMQTTClient.h
  *
  *  Created on: Jun 12, 2017
  *      Author: andri
  */
 
-#ifndef MAIN_NETWORKSERVICE_H_
-#define MAIN_NETWORKSERVICE_H_
+#ifndef MAIN_AZUREIOTHUBMQTTCLIENT_H_
+#define MAIN_AZUREIOTHUBMQTTCLIENT_H_
 
 #include "esp_event.h"
 #include "esp_event_loop.h"
@@ -109,7 +109,6 @@ private:
 	mqtt_settings mqttSettings_ = {};
 	mqtt_client *mqttClient_ = nullptr;
 
-	//EventGroupHandle_t mqttEventGroup_ = NULL;
 	xQueueHandle requestDataQueue_ = 0;
 
 	void doTask(void* taskData);
@@ -128,4 +127,4 @@ private:
 	bool parseCommandAsJson_ = false;
 };
 
-#endif /* MAIN_NETWORKSERVICE_H_ */
+#endif /* MAIN_AZUREIOTHUBMQTTCLIENT_H_ */
