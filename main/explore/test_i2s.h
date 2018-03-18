@@ -8,11 +8,13 @@ extern "C" {
 #include "driver/i2s.h"
 #include "freertos/ringbuf.h"
 //#include "rom/ets_sys.h"
+#include "time.h"
+#include "sys/time.h"
 }
 
 static RingbufHandle_t rb;
 
-const int sample_rate = 44100;//22050;
+const int sample_rate = 22050;
 const static char *TAG2 = "I2S";
 
 void tryI2SRecord(void *p)
@@ -258,14 +260,15 @@ void tryI2SInput(void *p)
     i2s_pin_config_t pin_config = {
         .bck_io_num = 26, //21,
         .ws_io_num = 25,
-        .data_out_num = 22, //I2S_PIN_NO_CHANGE
+        .data_out_num = 32, //I2S_PIN_NO_CHANGE
         .data_in_num = I2S_PIN_NO_CHANGE};
 
     i2s_pin_config_t pin_config_rx = {
-    		.bck_io_num = GPIO_NUM_26, //GPIO_NUM_17
-    		.ws_io_num = GPIO_NUM_25, //GPIO_NUM_5
+    		.bck_io_num = GPIO_NUM_17, //GPIO_NUM_26, //GPIO_NUM_17
+    		.ws_io_num = GPIO_NUM_5, //GPIO_NUM_25, //GPIO_NUM_5
     		.data_out_num = I2S_PIN_NO_CHANGE,
-    		.data_in_num = GPIO_NUM_36};
+    		.data_in_num = GPIO_NUM_16//GPIO_NUM_39,//GPIO_NUM_36
+    	};
 
     //Somehow it's needed. If not, noise!
     // pinMode(23, INPUT);
@@ -405,7 +408,7 @@ static void init_i2s()
 	i2s_pin_config_t pin_config_tx = {
 		.bck_io_num = GPIO_NUM_26,
 		.ws_io_num = GPIO_NUM_25,
-		.data_out_num = GPIO_NUM_22,
+		.data_out_num = GPIO_NUM_32,//,//GPIO_NUM_22 ,//,
 		.data_in_num = I2S_PIN_NO_CHANGE
 	};
 
@@ -425,15 +428,24 @@ static void init_i2s()
 	};
 
 	i2s_pin_config_t pin_config_rx = {
-		.bck_io_num = GPIO_NUM_17, //GPIO_NUM_26,
-		.ws_io_num = GPIO_NUM_5, //GPIO_NUM_25,
+		.bck_io_num = GPIO_NUM_17, //GPIO_NUM_26, //GPIO_NUM_17
+		.ws_io_num = GPIO_NUM_5, //GPIO_NUM_25, //GPIO_NUM_5
 		.data_out_num = I2S_PIN_NO_CHANGE,
-		.data_in_num = GPIO_NUM_39};
+		.data_in_num = GPIO_NUM_16,//GPIO_NUM_39,//GPIO_NUM_36
+	};
+
+//	i2s_pin_config_t pin_config_rx = {
+//		.bck_io_num = GPIO_NUM_26, //GPIO_NUM_26, //GPIO_NUM_17
+//		.ws_io_num = GPIO_NUM_25, //GPIO_NUM_25, //GPIO_NUM_5
+//		.data_out_num = I2S_PIN_NO_CHANGE,
+//		.data_in_num = GPIO_NUM_36,//GPIO_NUM_39,//GPIO_NUM_36
+//	};
+	pinMode(16, INPUT);
 
 	i2s_driver_install(I2S_NUM_1, &i2s_config_rx, 0, NULL);
 	i2s_set_pin(I2S_NUM_1, &pin_config_rx);
 
-	//pinMode(39, INPUT);
+
 	// pinMode(22, OUTPUT);
 }
 
@@ -612,7 +624,7 @@ void task_megaphone(void *pvParams)
 }
 */
 
-/*
+
 void task_megaphone(void *pvParams)
 {
 	uint16_t buf_len = 1024;
@@ -659,6 +671,10 @@ void task_megaphone(void *pvParams)
 
 			buf_ptr_write += 2 * (I2S_BITS_PER_SAMPLE_16BIT / 8);
 			buf_ptr_read += 2 * (I2S_BITS_PER_SAMPLE_32BIT / 8);
+
+//			int32_t dat = (int32_t)((buf_ptr_write[3] << 24) | (buf_ptr_write[2] << 16) | (buf_ptr_write[1] << 8) | buf_ptr_write[0]);
+//			Serial.printf("%d -> %d\n", cnt, dat);
+//			delay(1);
 		}
 
 		// local echo
@@ -677,8 +693,33 @@ void task_megaphone(void *pvParams)
 
 			cnt = 0;
 		}
+
+
 	}
+
+	/*
+	uint32_t cnt = 0;
+	uint32_t buffer;
+	uint32_t buffer_out = 0;
+	while (1) {
+		cnt++;
+		buffer = 0;
+		int bytes_popped = i2s_pop_sample(I2S_NUM_1, (char*) &buffer,
+				portMAX_DELAY);
+
+		buffer_out = buffer << 5;
+
+		if (buffer_out == 0) {
+			//For debugging, if out is zero
+			Serial.printf("%d -> %x\n", cnt, (int) buffer_out);
+			delay(50);
+		} else {
+			//Serial.printf("%d -> %d\n", cnt, (int) buffer_out);
+			//Just playback for now
+			i2s_push_sample(I2S_NUM_0, (char*) &buffer_out, portMAX_DELAY);
+		}
+	}*/
 }
-*/
+
 
 #endif

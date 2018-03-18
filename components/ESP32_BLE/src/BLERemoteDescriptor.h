@@ -23,13 +23,14 @@ class BLERemoteCharacteristic;
  */
 class BLERemoteDescriptor {
 public:
+	uint16_t    getHandle();
+	BLERemoteCharacteristic* getRemoteCharacteristic();
 	BLEUUID     getUUID();
 	std::string readValue(void);
 	uint8_t     readUInt8(void);
 	uint16_t    readUInt16(void);
 	uint32_t    readUInt32(void);
 	std::string toString(void);
-	//void        registerForNotify(void (*notifyCallback)(BLERemoteCharacteristic *pBLERemoteCharacteristic, uint8_t *pData, size_t length, bool isNotify));
 	void        writeValue(uint8_t* data, size_t length, bool response = false);
 	void        writeValue(std::string newValue, bool response = false);
 	void        writeValue(uint8_t newValue, bool response = false);
@@ -48,7 +49,7 @@ private:
 	BLERemoteCharacteristic* m_pRemoteCharacteristic;   // Reference to the Remote characteristic of which this descriptor is associated.
 	FreeRTOS::Semaphore      m_semaphoreReadDescrEvt      = FreeRTOS::Semaphore("ReadDescrEvt");
 
-	uint16_t getHandle();
+
 };
 #endif /* CONFIG_BT_ENABLED */
 #endif /* COMPONENTS_CPP_UTILS_BLEREMOTEDESCRIPTOR_H_ */

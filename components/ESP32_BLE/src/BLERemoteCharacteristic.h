@@ -30,13 +30,21 @@ public:
 	~BLERemoteCharacteristic();
 
 	// Public member functions
-	BLERemoteDescriptor *getDescriptor(BLEUUID uuid);
+	bool        canBroadcast();
+	bool        canIndicate();
+	bool        canNotify();
+	bool        canRead();
+	bool        canWrite();
+	bool        canWriteNoResponse();
+	BLERemoteDescriptor* getDescriptor(BLEUUID uuid);
+	std::map<std::string, BLERemoteDescriptor *>* getDescriptors();
+	uint16_t    getHandle();
 	BLEUUID     getUUID();
 	std::string readValue(void);
 	uint8_t     readUInt8(void);
 	uint16_t    readUInt16(void);
 	uint32_t    readUInt32(void);
-	void        registerForNotify(void (*notifyCallback)(BLERemoteCharacteristic *pBLERemoteCharacteristic, uint8_t *pData, size_t length, bool isNotify));
+	void        registerForNotify(void (*notifyCallback)(BLERemoteCharacteristic* pBLERemoteCharacteristic, uint8_t* pData, size_t length, bool isNotify));
 	void        writeValue(uint8_t* data, size_t length, bool response = false);
 	void        writeValue(std::string newValue, bool response = false);
 	void        writeValue(uint8_t newValue, bool response = false);
@@ -53,10 +61,11 @@ private:
 		esp_gattc_cb_event_t      event,
 		esp_gatt_if_t             gattc_if,
 		esp_ble_gattc_cb_param_t* evtParam);
-	void              getDescriptors();
-	uint16_t          getHandle();
+
+
 	BLERemoteService* getRemoteService();
 	void              removeDescriptors();
+	void              retrieveDescriptors();
 
 	// Private properties
 	BLEUUID              m_uuid;
@@ -67,9 +76,10 @@ private:
 	FreeRTOS::Semaphore  m_semaphoreRegForNotifyEvt  = FreeRTOS::Semaphore("RegForNotifyEvt");
 	FreeRTOS::Semaphore  m_semaphoreWriteCharEvt     = FreeRTOS::Semaphore("WriteCharEvt");
 	std::string          m_value;
-  void (*m_notifyCallback)(BLERemoteCharacteristic *pBLERemoteCharacteristic, uint8_t *pData, size_t length, bool isNotify);
+  void (*m_notifyCallback)(BLERemoteCharacteristic* pBLERemoteCharacteristic, uint8_t* pData, size_t length, bool isNotify);
+
 	// We maintain a map of descriptors owned by this characteristic keyed by a string representation of the UUID.
-	std::map<std::string, BLERemoteDescriptor *> m_descriptorMap;
+	std::map<std::string, BLERemoteDescriptor*> m_descriptorMap;
 }; // BLERemoteCharacteristic
 #endif /* CONFIG_BT_ENABLED */
 #endif /* COMPONENTS_CPP_UTILS_BLEREMOTECHARACTERISTIC_H_ */

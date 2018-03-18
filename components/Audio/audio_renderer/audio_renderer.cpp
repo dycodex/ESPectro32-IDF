@@ -64,10 +64,19 @@ void Renderer::init_i2s()
     i2s_config.intr_alloc_flags = ESP_INTR_FLAG_LEVEL1;        // Interrupt level 1
 
     i2s_pin_config_t pin_config;
-    pin_config.bck_io_num = GPIO_NUM_26;
-    pin_config.ws_io_num = GPIO_NUM_25;
-    pin_config.data_out_num = GPIO_NUM_22;
-    pin_config.data_in_num = I2S_PIN_NO_CHANGE;
+
+    if (i2s_pin_config == nullptr) {
+		pin_config.bck_io_num = GPIO_NUM_26;
+		pin_config.ws_io_num = GPIO_NUM_25;
+		pin_config.data_out_num = GPIO_NUM_22;//GPIO_NUM_32;//
+		pin_config.data_in_num = I2S_PIN_NO_CHANGE;
+    }
+    else {
+		pin_config.bck_io_num = i2s_pin_config->bck_io_num;
+		pin_config.ws_io_num = i2s_pin_config->ws_io_num;
+		pin_config.data_out_num = i2s_pin_config->data_out_num;
+		pin_config.data_in_num = i2s_pin_config->data_in_num;
+    }
 
     i2s_driver_install(i2s_num, &i2s_config, 1, &i2s_event_queue);
 
@@ -270,8 +279,10 @@ i2s_bits_per_sample_t Renderer::getBitDepth() const
     return bit_depth;
 }
 
-Renderer::Renderer()
+Renderer::Renderer(i2s_pin_config_t *pin_config): i2s_pin_config(pin_config)
 {
+	printf("Data out pin: %d\n", i2s_pin_config->data_out_num);
+
     bit_depth = I2S_BITS_PER_SAMPLE_16BIT;
     i2s_num = I2S_NUM_0;  
     sample_rate = 44100;  
@@ -279,11 +290,11 @@ Renderer::Renderer()
     output_mode = 0==AUDIO_OUTPUT_MODE?I2S:(1==AUDIO_OUTPUT_MODE?I2S_MERUS:(2==AUDIO_OUTPUT_MODE?DAC_BUILT_IN:(3==AUDIO_OUTPUT_MODE?PDM:I2S)));
 
     if(output_mode == I2S_MERUS) {
-	bit_depth = I2S_BITS_PER_SAMPLE_32BIT;
+    		bit_depth = I2S_BITS_PER_SAMPLE_32BIT;
     }                                      
 
     if(output_mode == DAC_BUILT_IN) {
-	bit_depth = I2S_BITS_PER_SAMPLE_16BIT;
+    		bit_depth = I2S_BITS_PER_SAMPLE_16BIT;
     }      
 }
 

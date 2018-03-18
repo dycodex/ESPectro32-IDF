@@ -17,6 +17,7 @@
 #include <SparkFunCCS811.h>
 #include "SparkFunLSM9DS1.h"
 #include "GpioExpander.h"
+#include <functional>
 
 #include <RTClib.h>
 #undef SECONDS_PER_DAY
@@ -50,6 +51,13 @@ using namespace AllAboutEE;
 static uint32_t aloraWindTimeSinceLastTick = 0;
 static uint32_t aloraWindLastTick = 0;
 
+#ifndef ALORA_SENSOR_USE_MAX30205
+#define ALORA_SENSOR_USE_MAX30205 	1
+#endif
+#if ALORA_SENSOR_USE_MAX30205
+#include <Protocentral_MAX30205.h>
+#endif
+
 //static void aloraWindSensorInterruptHandler();
 
 /**
@@ -77,6 +85,9 @@ struct SensorValues {
     int magnetic;       /**< Magnetic sensor value */
     float windSpeed;    /**< Speed of the wind in MPH */
     gps_fix gpsFix;     /**< GPS fix information */
+#if ALORA_SENSOR_USE_MAX30205
+    float BT;			/** Body temperature from MAX30205 */
+#endif
 };
 
 
@@ -88,11 +99,15 @@ struct SensorValues {
  */
 class AloraSensorKit {
 public:
+
+	typedef std::function<void(gps_fix &)> GpsDataAvailableCallback;
+
     AloraSensorKit();
     ~AloraSensorKit();
 
     void begin();
     void run();
+    void runGPS();
     void scanAndPrintI2C(Print& print);
     void printSensingTo(Print& print);
     void printSensingTo(String& str);
@@ -101,6 +116,19 @@ public:
     SensorValues& getLastSensorData();
     void initGPS(Stream* gpsStream);
     NMEAGPS* getGPSObject();
+
+    void onGpsFixAvailableCallback(GpsDataAvailableCallback cb) {
+    		gpsFixAvailableCallback_ = cb;
+    }
+
+    GpioExpander &GPIOExpander();
+
+    void setSensingInterval(uint16_t intv) {
+    		sensingInterval_ = intv;
+    }
+
+    //Make it public
+    void readTSL2591(double& lux);
 
 private:
     NMEAGPS* gps = NULL;
@@ -113,14 +141,20 @@ private:
     GpioExpander* ioExpander = NULL;            /**< Object of GPIO Expander (SX1509) */
     MAX11609* max11609 = NULL;                  /**< Object of MAX11609 */
     RTC_DS3231* rtc = NULL;                     /**< Object of RTC sensor */
+#if ALORA_SENSOR_USE_MAX30205
+    MAX30205 *max30205 = NULL;
+#endif
 
-    SensorValues lastSensorData;                /**< Object of SensorValues struct. All sensor data are stored in this property */
+    SensorValues lastSensorData_;                /**< Object of SensorValues struct. All sensor data are stored in this property */
+    uint16_t sensingInterval_ = ALORA_SENSOR_QUERY_INTERVAL;
     uint32_t lastSensorQuerryMs = 0;            /**< Records the time when the sensor data is read in milliseconds */
+
+    GpsDataAvailableCallback gpsFixAvailableCallback_ = NULL;
 
     void doAllSensing();
     void readBME280(float& T, float& P, float& H);
     void readHDC1080(float& T, float& H);
-    void readTSL2591(double& lux);
+    //void readTSL2591(double& lux);
     void configureTSL2591Sensor();
     void readGas(uint16_t& gas, uint16_t& co2);
     void readAccelerometer(float &ax, float &ay, float &az);
@@ -129,6 +163,9 @@ private:
     void readMagneticSensor(int& mag);
     void readWindSpeed(float& windspeed);
     void readGPS(gps_fix& fix);
+#if ALORA_SENSOR_USE_MAX30205
+    void readBodyTemperature(float &temp);
+#endif
 };
 
 #endif

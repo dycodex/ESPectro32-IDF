@@ -15,12 +15,15 @@
 #include <ESPectro32_Constants.h>
 #include <audio_renderer.hpp>
 
+
+#define AUDIOPLAYER_DEBUG_PRINT(...)  ESP_LOGI("AUDIO", __VA_ARGS__)
+
 class AudioPlayer: public Task {
 public:
 	AudioPlayer();
 	virtual ~AudioPlayer();
 
-	void begin();
+	void begin(fs::FS &fs = SD, i2s_pin_config_t *pin_config = nullptr);
 	void playAsync(const char* path);
 
 	//void start(void *taskData=nullptr);
@@ -29,7 +32,9 @@ public:
 	void stop();
 
 private:
+	fs::FS &audioFS_ = SD;
 	Renderer *audioRenderer_ = NULL;
+	//i2s_pin_config_t *i2s_pin_config_ = NULL;
 };
 
 #endif /* MAIN_AUDIOPLAYER_H_ */

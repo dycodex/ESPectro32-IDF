@@ -74,6 +74,7 @@ public:
 
 	bool begin();
 	bool reconnect();
+	bool isConnected();
 	void run();
 	void runAsync(void *taskData);
 

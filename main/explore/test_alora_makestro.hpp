@@ -32,10 +32,18 @@ ESPectro32_RGBLED_GlowingAnimation glowAnim(ESPectro32.RgbLed(), aCol);
 
 #include <MakestroCloudClient32.h>
 
-#define DEVICE_ID "daf44817"
+#define DEVICE_ID "123456789"
 MakestroCloudClient32 client(DEFAULT_MAKESTRO_USER, DEFAULT_MAKESTRO_KEY, "ALORA_V2", DEVICE_ID);
 
 AloraSensorKit sensorKit;
+
+
+//#include <Adafruit_GFX.h>
+//#include <Adafruit_SH1106.h>
+//#define OLED_SDA 21
+//#define OLED_SCL 22
+//
+//Adafruit_SH1106 display(OLED_SDA, OLED_SCL);
 
 static void test_alora_makestro() {
 
@@ -68,6 +76,25 @@ static void test_alora_makestro() {
 
     	//Actually start
     	wifiMgr.start();
+
+
+    	//Display
+//  display.begin(SH1106_SWITCHCAPVCC, 0x3C);
+//	display.display();
+//	delay(2000);
+//	display.clearDisplay();
+//    	// text display tests
+//	display.setTextSize(1);
+//	display.setTextColor(WHITE);
+//	display.setCursor(0,0);
+//	display.println("Hello, world!");
+//	display.setTextColor(BLACK, WHITE); // 'inverted' text
+//	display.println(3.141592);
+//	display.setTextSize(2);
+//	display.setTextColor(WHITE);
+//	display.print("0x"); display.println(0xDEADBEEF, HEX);
+//	display.display();
+
 
     	if (wifiMgr.waitForConnection()) {
     		ledMatrixAnim.stop();
@@ -106,7 +133,7 @@ static void test_alora_makestro() {
 
 			char payloadStr[256];
 			//sprintf(payloadStr, "T1=%s&P=%s&H1=%s&AX=%s&AY=%s&AZ=%s&GX=%s&GY=%s&GZ=%s&MX=%s&MY=%s&MZ=%s&MH=%s&T2=%s&H2=%s&L=%s&S=%d&G=%d&B=%d",
-			sprintf(payloadStr, "{\"T1\":%.2f,\"P\":%.2f,\"H1\":%.2f,\"AX\":%.4f,\"AY\":%.4f,\"AZ\":%.4f,\"GX\":%.4f,\"GY\":%.4f,\"GZ\":%.4f,\"MH\":%.2f,\"T2\":%.2f,\"H2\":%.2f,\"L\":%.2f,\"G\":%d,\"CO2\":%d}",
+			sprintf(payloadStr, "{\"T1\":%.2f,\"P\":%.2f,\"H1\":%.2f,\"AX\":%.4f,\"AY\":%.4f,\"AZ\":%.4f,\"GX\":%.4f,\"GY\":%.4f,\"GZ\":%.4f,\"MH\":%.2f,\"T2\":%.2f,\"H2\":%.2f,\"L\":%.2f,\"G\":%d,\"CO2\":%d,\"device_id\":\"%s\"}",
 					sensorData.T1, sensorData.P, sensorData.H1,
 					sensorData.accelX, sensorData.accelY, sensorData.accelZ,
 					sensorData.gyroX, sensorData.gyroY, sensorData.gyroZ,
@@ -115,7 +142,8 @@ static void test_alora_makestro() {
 					sensorData.T2, sensorData.H2,
 					sensorData.lux,
 					sensorData.gas,
-					sensorData.co2);
+					sensorData.co2,
+					DEVICE_ID);
 
     			client.publishData(payloadStr);
 			Serial.println(payloadStr);

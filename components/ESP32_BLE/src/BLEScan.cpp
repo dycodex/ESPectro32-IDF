@@ -17,34 +17,26 @@
 #include "BLEScan.h"
 #include "BLEUtils.h"
 #include "GeneralUtils.h"
+#ifdef ARDUINO_ARCH_ESP32
+#include "esp32-hal-log.h"
+#endif
 
 static const char* LOG_TAG = "BLEScan";
 
 
+/**
+ * Constructor
+ */
 BLEScan::BLEScan() {
 	m_scan_params.scan_type          = BLE_SCAN_TYPE_PASSIVE; // Default is a passive scan.
 	m_scan_params.own_addr_type      = BLE_ADDR_TYPE_PUBLIC;
 	m_scan_params.scan_filter_policy = BLE_SCAN_FILTER_ALLOW_ALL;
+	m_pAdvertisedDeviceCallbacks     = nullptr;
+	m_stopped                        = true;
+	m_wantDuplicates                 = false;
 	setInterval(100);
 	setWindow(100);
-	m_pAdvertisedDeviceCallbacks = nullptr;
-	m_stopped = true;
 } // BLEScan
-
-
-
-/**
- * @brief Clear the history of previously detected advertised devices.
- * @return N/A
- */
-/*
-void BLEScan::clearAdvertisedDevices() {
-	for (int i=0; i<m_vectorAvdertisedDevices.size(); i++) {
-		delete m_vectorAvdertisedDevices[i];
-	}
-	m_vectorAvdertisedDevices.clear();
-} // clearAdvertisedDevices
-*/
 
 
 /**
@@ -52,7 +44,7 @@ void BLEScan::clearAdvertisedDevices() {
  * @param [in] event The event type for this event.
  * @param [in] param Parameter data for this event.
  */
-void BLEScan::gapEventHandler(
+void BLEScan::handleGAPEvent(
 	esp_gap_ble_cb_event_t  event,
 	esp_ble_gap_cb_param_t* param) {
 
@@ -75,12 +67,21 @@ void BLEScan::gapEventHandler(
 		case ESP_GAP_BLE_SCAN_RESULT_EVT: {
 
 			switch(param->scan_rst.search_evt) {
+				//
+				// ESP_GAP_SEARCH_INQ_CMPL_EVT
+				//
+				// Event that indicates that the duration allowed for the search has completed or that we have been
+				// asked to stop.
 				case ESP_GAP_SEARCH_INQ_CMPL_EVT: {
 					m_stopped = true;
 					m_semaphoreScanEnd.give();
 					break;
 				} // ESP_GAP_SEARCH_INQ_CMPL_EVT
 
+				//
+				// ESP_GAP_SEARCH_INQ_RES_EVT
+				//
+				// Result that has arrived back from a Scan inquiry.
 				case ESP_GAP_SEARCH_INQ_RES_EVT: {
 					if (m_stopped) { // If we are not scanning, nothing to do with the extra results.
 						break;
@@ -90,21 +91,14 @@ void BLEScan::gapEventHandler(
 // ignore it.
 					BLEAddress advertisedAddress(param->scan_rst.bda);
 					bool found = false;
-					/*
-					for (int i=0; i<m_vectorAvdertisedDevices.size(); i++) {
-						if (m_vectorAvdertisedDevices[i]->getAddress().equals(advertisedAddress)) {
-							found = true;
-							break;
-						}
-					}
-					*/
+
 					for (int i=0; i<m_scanResults.getCount(); i++) {
 						if (m_scanResults.getDevice(i).getAddress().equals(advertisedAddress)) {
 							found = true;
 							break;
 						}
 					}
-					if (found) {
+					if (found && !m_wantDuplicates) {  // If we found a previous entry AND we don't want duplicates, then we are done.
 						ESP_LOGD(LOG_TAG, "Ignoring %s, already seen it.", advertisedAddress.toString().c_str());
 						break;
 					}
@@ -118,12 +112,13 @@ void BLEScan::gapEventHandler(
 					advertisedDevice.parseAdvertisement((uint8_t*)param->scan_rst.ble_adv);
 					advertisedDevice.setScan(this);
 
-					//m_vectorAvdertisedDevices.push_back(pAdvertisedDevice);
 					if (m_pAdvertisedDeviceCallbacks) {
 						m_pAdvertisedDeviceCallbacks->onResult(advertisedDevice);
 					}
 
-					m_scanResults.m_vectorAdvertisedDevices.push_back(advertisedDevice);
+					if (!found) {   // If we have previously seen this device, don't record it again.
+						m_scanResults.m_vectorAdvertisedDevices.push_back(advertisedDevice);
+					}
 
 					break;
 				} // ESP_GAP_SEARCH_INQ_RES_EVT
@@ -144,14 +139,6 @@ void BLEScan::gapEventHandler(
 } // gapEventHandler
 
 
-/*
-void BLEScan::onResults() {
-	ESP_LOGD(LOG_TAG, ">> onResults: default");
-	ESP_LOGD(LOG_TAG, "<< onResults");
-} // onResults
-*/
-
-
 /**
  * @brief Should we perform an active or passive scan?
  * The default is a passive scan.  An active scan means that we will wish a scan response.
@@ -170,8 +157,10 @@ void BLEScan::setActiveScan(bool active) {
 /**
  * @brief Set the call backs to be invoked.
  * @param [in] pAdvertisedDeviceCallbacks Call backs to be invoked.
+ * @param [in] wantDuplicates  True if we wish to be called back with duplicates.  Default is false.
  */
-void BLEScan::setAdvertisedDeviceCallbacks(BLEAdvertisedDeviceCallbacks* pAdvertisedDeviceCallbacks) {
+void BLEScan::setAdvertisedDeviceCallbacks(BLEAdvertisedDeviceCallbacks* pAdvertisedDeviceCallbacks, bool wantDuplicates) {
+	m_wantDuplicates = wantDuplicates;
 	m_pAdvertisedDeviceCallbacks = pAdvertisedDeviceCallbacks;
 } // setAdvertisedDeviceCallbacks
 
@@ -200,16 +189,13 @@ void BLEScan::setWindow(uint16_t windowMSecs) {
  * @return N/A.
  */
 BLEScanResults BLEScan::start(uint32_t duration) {
-	ESP_LOGD(LOG_TAG, ">> start(%d)", duration);
+	ESP_LOGD(LOG_TAG, ">> start(duration=%d)", duration);
 
-	m_semaphoreScanEnd.take("start");
-	ESP_LOGD(LOG_TAG, "A");
+	m_semaphoreScanEnd.take(std::string("start"));
 
-	m_scanResults.m_vectorAdvertisedDevices.empty();
-	ESP_LOGD(LOG_TAG, "B");
+	m_scanResults.m_vectorAdvertisedDevices.clear();
 
 	esp_err_t errRc = ::esp_ble_gap_set_scan_params(&m_scan_params);
-	ESP_LOGD(LOG_TAG, "C");
 
 	if (errRc != ESP_OK) {
 		ESP_LOGE(LOG_TAG, "esp_ble_gap_set_scan_params: err: %d, text: %s", errRc, GeneralUtils::errorToString(errRc));
@@ -227,8 +213,7 @@ BLEScanResults BLEScan::start(uint32_t duration) {
 
 	m_stopped = false;
 
-	m_semaphoreScanEnd.take("start");
-	m_semaphoreScanEnd.give();
+	m_semaphoreScanEnd.wait("start");   // Wait for the semaphore to release.
 
 	ESP_LOGD(LOG_TAG, "<< start()");
 	return m_scanResults;
@@ -258,6 +243,17 @@ void BLEScan::stop() {
 
 
 /**
+ * @brief Dump the scan results to the log.
+ */
+void BLEScanResults::dump() {
+	ESP_LOGD(LOG_TAG, ">> Dump scan results:");
+	for (int i=0; i<getCount(); i++) {
+		ESP_LOGD(LOG_TAG, "- %s", getDevice(i).toString().c_str());
+	}
+} // dump
+
+
+/**
  * @brief Return the count of devices found in the last scan.
  * @return The number of devices found in the last scan.
  */
@@ -275,5 +271,6 @@ int BLEScanResults::getCount() {
 BLEAdvertisedDevice BLEScanResults::getDevice(uint32_t i) {
 	return m_vectorAdvertisedDevices.at(i);
 }
+
 
 #endif /* CONFIG_BT_ENABLED */

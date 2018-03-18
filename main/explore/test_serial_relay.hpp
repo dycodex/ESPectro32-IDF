@@ -10,25 +10,25 @@
 
 #include <Arduino.h>
 
-#define RX_PIN 17
-#define TX_PIN 16
+#define RX_PIN 25//17
+#define TX_PIN 26//16
 
-HardwareSerial ATMSerial(1);
+HardwareSerial theSerial(1);
 
 void serialRelay(void *p) {
 
-	ATMSerial.begin(9600, SERIAL_8N1, RX_PIN, TX_PIN);
+	theSerial.begin(115200, SERIAL_8N1, RX_PIN, TX_PIN);
 
-	Serial.println("Waiting...");
+//	Serial.println("Waiting...");
 
-	ATMSerial.println("AT");
+//	theSerial.println("at+version");
 
 	for(;;) {
-		while (ATMSerial.available() > 0) {
-			Serial.write(ATMSerial.read());
+		while (theSerial.available() > 0) {
+			Serial.write(theSerial.read());
 		}
 		while (Serial.available() > 0) {
-			ATMSerial.write(Serial.read());
+			theSerial.write(Serial.read());
 		}
 
 		vTaskDelay(1/portTICK_PERIOD_MS);
@@ -39,7 +39,7 @@ void serialRelay(void *p) {
 }
 
 static void test_serial_relay() {
-	ATMSerial.begin(9600, SERIAL_8N1, RX_PIN, TX_PIN);
+	//theSerial.begin(9600, SERIAL_8N1, RX_PIN, TX_PIN);
 	xTaskCreatePinnedToCore(serialRelay, "serialRelayTask", 4096, NULL, 1, NULL, 0);
 }
 

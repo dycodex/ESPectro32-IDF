@@ -15,6 +15,7 @@
 #include <SPIFFS.h>
 #include <WavFile.h>
 #include <audio_renderer.hpp>
+#include <AudioPlayer.h>
 
 extern "C" {
 #include "driver/i2s.h"
@@ -25,6 +26,21 @@ const static char *TAG_WAV = "WAV";
 
 //Change this define to 1 for using SPIFFS instead of SD-Card
 #define USE_SDCARD 	0
+
+static void test_play_wav_file_audio_player() {
+
+	i2s_pin_config_t pin_config;
+	pin_config.bck_io_num = GPIO_NUM_26;
+	pin_config.ws_io_num = GPIO_NUM_25;
+	pin_config.data_out_num = GPIO_NUM_32;
+	pin_config.data_in_num = I2S_PIN_NO_CHANGE;
+
+	AudioPlayer *player = new AudioPlayer();
+	player->begin(SD, &pin_config);
+
+	player->playAsync("/WAV/SLOWDOWN.WAV");
+
+}
 
 static void test_play_wav_file() {
 	ESP_LOGI(TAG_WAV, "Opening file for playing");

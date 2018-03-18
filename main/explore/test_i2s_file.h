@@ -24,7 +24,8 @@ void tryI2SRecord(void *p)
 {
 	ESP_LOGI(TAG2, "Opening file for recording");
 
-	fs::FS fs = SPIFFS;
+	//fs::FS fs = SPIFFS;
+	fs::FS fs = SD;
 
 	File file = fs.open("/hello.wav", FILE_WRITE);
 	if (!file) {
@@ -57,7 +58,7 @@ void tryI2SRecord(void *p)
 	i2s_pin_config_t pin_config_tx = {
 		.bck_io_num = 26, //21,
 		.ws_io_num = 25,
-		.data_out_num = 22, //I2S_PIN_NO_CHANGE
+		.data_out_num = GPIO_NUM_22,//32, //I2S_PIN_NO_CHANGE
 		.data_in_num = I2S_PIN_NO_CHANGE
 	};
 
@@ -65,7 +66,7 @@ void tryI2SRecord(void *p)
 		.bck_io_num = GPIO_NUM_17, //GPIO_NUM_26, //GPIO_NUM_17
 		.ws_io_num = GPIO_NUM_5, //GPIO_NUM_25, //GPIO_NUM_5
 		.data_out_num = I2S_PIN_NO_CHANGE,
-		.data_in_num = GPIO_NUM_16//GPIO_NUM_39,//GPIO_NUM_36
+		.data_in_num = GPIO_NUM_39,//GPIO_NUM_16,//GPIO_NUM_36
 	};
 
     //for recording
@@ -235,8 +236,8 @@ void tryI2SPlay(void *p)
 	ESP_LOGI(TAG2, "Opening file for playing");
 //	mclk_enable_out_clock();
 
-	WRITE_PERI_REG(PIN_CTRL, READ_PERI_REG(PIN_CTRL)&0xFFFFFFF0);
-	PIN_FUNC_SELECT (PERIPHS_IO_MUX_GPIO0_U, FUNC_GPIO0_CLK_OUT1);
+//	WRITE_PERI_REG(PIN_CTRL, READ_PERI_REG(PIN_CTRL)&0xFFFFFFF0);
+//	PIN_FUNC_SELECT (PERIPHS_IO_MUX_GPIO0_U, FUNC_GPIO0_CLK_OUT1);
 
 	//fs::FS fs = SPIFFS;
 	fs::FS fs = SD;
@@ -267,7 +268,7 @@ void tryI2SPlay(void *p)
     // Open file for reading
 	ESP_LOGI(TAG2, "Reading file");
 	//File file = fs.open("/indonesia.wav", FILE_READ);
-	File file = fs.open("/WAV/SHARK.WAV", FILE_READ);
+	File file = fs.open("/WAV/DOWNLOAD.WAV", FILE_READ);
 
 	if (!file) {
 		ESP_LOGE(TAG2, "Failed to open file for reading");

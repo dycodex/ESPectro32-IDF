@@ -17,14 +17,13 @@ extern "C" {
 #include "esp_log.h"
 }
 
-const static char *TAG_AUDIO = "AUDIO";
-
 AudioPlayer::AudioPlayer():
 	Task("AudioPlayer_Task", 2048*4, configMAX_PRIORITIES - 2) {
 
 }
 
 AudioPlayer::~AudioPlayer() {
+
 	if (audioRenderer_ != NULL) {
 		audioRenderer_->renderer_stop();
 		audioRenderer_->renderer_destroy();
@@ -32,15 +31,16 @@ AudioPlayer::~AudioPlayer() {
 	}
 }
 
-void AudioPlayer::begin() {
-	ESP_LOGI(TAG_AUDIO, "Opening file for playing");
+void AudioPlayer::begin(fs::FS &fs, i2s_pin_config_t *pin_config) {
+	AUDIOPLAYER_DEBUG_PRINT("Opening file for playing");
 
-//	if(!SD.begin(ESPECTRO32_SDCARD_CSPIN)){
-//		ESP_LOGE(TAG_AUDIO, "Card Mount Failed");
-//		return;
-//	}
+	//i2s_pin_config_ = pin_config;
+	audioFS_ = fs;
 
-	ESPectro32.beginSDCard();
+	if (audioRenderer_ == NULL) {
+		audioRenderer_ = new Renderer(pin_config);
+		audioRenderer_->renderer_init();
+	}
 }
 
 void AudioPlayer::playAsync(const char* path) {
@@ -53,68 +53,78 @@ void AudioPlayer::playAsync(const char* path) {
 void AudioPlayer::run() {
 }
 
+bool starts_with (const char* base, const char* str) {
+    return (strstr(base, str) - base) == 0;
+}
+
 void AudioPlayer::runAsync(void* data) {
 	const char* path = (const char*)data;
 
-	fs::FS fs = SD;
-
-//	WavFile f = WavFile::openWavFile(fs, path, FILE_READ);
-//
-//	wav_header_t header;
-//	std::vector<wav_chunk_t> chunks;
-//	f.parseHeader(&header, chunks);
-
-	File f = fs.open(path, FILE_READ);
-	delay(100);
-//	WavFile f = *(WavFile*)&file; //--> it's not working if using SPIFFS
-
+	File f;
 	wav_header_t header;
-	f.read((uint8_t *)&header, sizeof(header));
 
-	wav_chunk_t chunk;
-	printf("id\t" "size\n");
-	//Run through data chunk
-	while (true)
-	{
-		f.read((uint8_t*)&chunk, sizeof(chunk));
-		printf("%c%c%c%c\t" "%li\n", chunk.ID[0], chunk.ID[1], chunk.ID[2], chunk.ID[3], chunk.size);
-		if (*(unsigned int *)&chunk.ID == 0x61746164)
-			break;
-		//skip chunk data bytes
-		f.seek(chunk.size, SeekCur);
-	}
+		f = WavFile::openWavFile(audioFS_, path, FILE_READ);
+
+
+		std::vector<wav_chunk_t> chunks;
+
+		WavFile file = *(WavFile*)&f;
+		file.parseHeader(&header, chunks);
+
+//		f = audioFS_.open(path, FILE_READ);
+//		delay(100);
+//	//	WavFile f = *(WavFile*)&file; //--> it's not working if using SPIFFS
+//
+//		f.read((uint8_t *)&header, sizeof(header));
+
+
+
+//	wav_chunk_t chunk;
+//	printf("id\t" "size\n");
+//	//Run through data chunk
+//	while (true)
+//	{
+//		f.read((uint8_t*)&chunk, sizeof(chunk));
+//		printf("%c%c%c%c\t" "%li\n", chunk.ID[0], chunk.ID[1], chunk.ID[2], chunk.ID[3], chunk.size);
+//		if (*(unsigned int *)&chunk.ID == 0x61746164)
+//			break;
+//		//skip chunk data bytes
+//		f.seek(chunk.size, SeekCur);
+//	}
 
 	//Print WAV header
-	printf("WAV File Header readings:\n");
-	printf("File Type: %s\n", header.chunkID);
-	printf("File Size: %ld\n", header.chunkSize);
-	printf("WAV Marker: %s\n", header.format);
-	printf("Format Name: %s\n", header.subchunk1ID);
-	printf("Format Length: %ld\n", header.subchunk1Size );
-	printf("Format Type: %hd\n", header.audioFormat);
-	printf("Number of Channels: %hd\n", header.numChannels);
-	printf("Sample Rate: %ld\n", header.sampleRate);
-	printf("Sample Rate * Bits/Sample * Channels / 8: %ld\n", header.byteRate);
-	printf("Bits per Sample * Channels / 8.1: %hd\n", header.blockAlign);
-	printf("Bits per Sample: %hd\n", header.bitsPerSample);
+		AUDIOPLAYER_DEBUG_PRINT("WAV File Header readings:");
+		AUDIOPLAYER_DEBUG_PRINT("\tFile Type: %s", header.chunkID);
+		AUDIOPLAYER_DEBUG_PRINT("\tFile Size: %ld", header.chunkSize);
+		AUDIOPLAYER_DEBUG_PRINT("\tWAV Marker: %s", header.format);
+		AUDIOPLAYER_DEBUG_PRINT("\tFormat Name: %s", header.subchunk1ID);
+		AUDIOPLAYER_DEBUG_PRINT("\tFormat Length: %ld", header.subchunk1Size );
+		AUDIOPLAYER_DEBUG_PRINT("\tFormat Type: %hd", header.audioFormat);
+		AUDIOPLAYER_DEBUG_PRINT("\tNumber of Channels: %hd", header.numChannels);
+		AUDIOPLAYER_DEBUG_PRINT("\tSample Rate: %ld", header.sampleRate);
+		AUDIOPLAYER_DEBUG_PRINT("\tSample Rate * Bits/Sample * Channels / 8: %ld", header.byteRate);
+		AUDIOPLAYER_DEBUG_PRINT("\tBits per Sample * Channels / 8.1: %hd", header.blockAlign);
+		AUDIOPLAYER_DEBUG_PRINT("\tBits per Sample: %hd", header.bitsPerSample);
 
 //	for(auto chunk: chunks) {
 //		printf("%c%c%c%c ->\t" "%li\n", chunk.ID[0], chunk.ID[1], chunk.ID[2], chunk.ID[3], chunk.size);
 //	}
 
-	printf("Start playing\n");
+		AUDIOPLAYER_DEBUG_PRINT("Start playing");
 
-	//if (audioRenderer_ == NULL) {
-		audioRenderer_ = new Renderer();
-		audioRenderer_->renderer_init();
-	//}
+//	//if (audioRenderer_ == NULL) {
+//		audioRenderer_ = new Renderer(i2s_pin_config_);
+//		audioRenderer_->renderer_init();
+//	//}
 
 	audioRenderer_->renderer_start();
 
+	i2s_bits_per_sample_t bps = (header.bitsPerSample == 0)? I2S_BITS_PER_SAMPLE_16BIT: (i2s_bits_per_sample_t)header.bitsPerSample; //I2S_BITS_PER_SAMPLE_16BIT;
+
 	pcm_format_t pcm_fmt = {
-		.sample_rate = 22050,//header.sampleRate,
-		.bit_depth = I2S_BITS_PER_SAMPLE_16BIT,
-		.num_channels = 1,//header.numChannels,
+		.sample_rate = header.sampleRate,//22050
+		.bit_depth = bps,
+		.num_channels = header.numChannels,//1
 		.buffer_format = PCM_LEFT_RIGHT,
 		.endianness = PCM_BIG_ENDIAN
 	};
@@ -129,13 +139,13 @@ void AudioPlayer::runAsync(void* data) {
 			audioRenderer_->render_samples(buffer_read, 512, &pcm_fmt);
 		}
 		else {
-			printf("Stop playing\n");
+			AUDIOPLAYER_DEBUG_PRINT("Stop playing");
 			break;
 		}
 	}
 
 	audioRenderer_->renderer_stop();
-	audioRenderer_->renderer_destroy();
+//	audioRenderer_->renderer_destroy();
 
 	vTaskDelete(NULL);
 }

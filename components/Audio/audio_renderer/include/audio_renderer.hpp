@@ -49,27 +49,28 @@ typedef struct
 
 class Renderer{
     private:
-	output_mode_t output_mode;
-	int sample_rate;
-	float sample_rate_modifier;
-	i2s_bits_per_sample_t bit_depth;
-	i2s_port_t i2s_num;
+		output_mode_t output_mode;
+		int sample_rate;
+		float sample_rate_modifier;
+		i2s_bits_per_sample_t bit_depth;
+		i2s_port_t i2s_num;
+		i2s_pin_config_t *i2s_pin_config = nullptr;
 
-	void init_i2s();
+		void init_i2s();
 
     public:
-	Renderer();
-	/* generic renderer interface */
-	void render_samples(const char *buf, uint32_t len, pcm_format_t *format);
+		Renderer(i2s_pin_config_t *pin_config = nullptr);
+		/* generic renderer interface */
+		void render_samples(const char *buf, uint32_t len, pcm_format_t *format);
 
-	void renderer_init();
-	void renderer_start();
-	void renderer_stop();
-	void renderer_destroy();
+		void renderer_init();
+		void renderer_start();
+		void renderer_stop();
+		void renderer_destroy();
 
-	void renderer_zero_dma_buffer();
+		void renderer_zero_dma_buffer();
 
-	i2s_bits_per_sample_t getBitDepth() const;
+		i2s_bits_per_sample_t getBitDepth() const;
 };
 
 

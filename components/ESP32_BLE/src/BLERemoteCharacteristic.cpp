@@ -15,9 +15,13 @@
 #include <esp_err.h>
 
 #include <sstream>
+#include "BLEExceptions.h"
 #include "BLEUtils.h"
 #include "GeneralUtils.h"
 #include "BLERemoteDescriptor.h"
+#ifdef ARDUINO_ARCH_ESP32
+#include "esp32-hal-log.h"
+#endif
 
 
 static const char* LOG_TAG = "BLERemoteCharacteristic";   // The logging tag for this class.
@@ -41,7 +45,7 @@ BLERemoteCharacteristic::BLERemoteCharacteristic(
 	m_pRemoteService = pRemoteService;
 	m_notifyCallback = nullptr;
 
-	getDescriptors(); // Get the descriptors for this characteristic
+	retrieveDescriptors(); // Get the descriptors for this characteristic
 	ESP_LOGD(LOG_TAG, "<< BLERemoteCharacteristic");
 } // BLERemoteCharacteristic
 
@@ -52,6 +56,60 @@ BLERemoteCharacteristic::BLERemoteCharacteristic(
 BLERemoteCharacteristic::~BLERemoteCharacteristic() {
 	removeDescriptors();   // Release resources for any descriptor information we may have allocated.
 } // ~BLERemoteCharacteristic
+
+
+/**
+ * @brief Does the characteristic support broadcasting?
+ * @return True if the characteristic supports broadcasting.
+ */
+bool BLERemoteCharacteristic::canBroadcast() {
+	return (m_charProp & ESP_GATT_CHAR_PROP_BIT_BROADCAST) != 0;
+} // canBroadcast
+
+
+/**
+ * @brief Does the characteristic support indications?
+ * @return True if the characteristic supports indications.
+ */
+bool BLERemoteCharacteristic::canIndicate() {
+	return (m_charProp & ESP_GATT_CHAR_PROP_BIT_INDICATE) != 0;
+} // canIndicate
+
+
+/**
+ * @brief Does the characteristic support notifications?
+ * @return True if the characteristic supports notifications.
+ */
+bool BLERemoteCharacteristic::canNotify() {
+	return (m_charProp & ESP_GATT_CHAR_PROP_BIT_NOTIFY) != 0;
+} // canNotify
+
+
+/**
+ * @brief Does the characteristic support reading?
+ * @return True if the characteristic supports reading.
+ */
+bool BLERemoteCharacteristic::canRead() {
+	return (m_charProp & ESP_GATT_CHAR_PROP_BIT_READ) != 0;
+} // canRead
+
+
+/**
+ * @brief Does the characteristic support writing?
+ * @return True if the characteristic supports writing.
+ */
+bool BLERemoteCharacteristic::canWrite() {
+	return (m_charProp & ESP_GATT_CHAR_PROP_BIT_WRITE) != 0;
+} // canWrite
+
+
+/**
+ * @brief Does the characteristic support writing with no response?
+ * @return True if the characteristic supports writing with no response.
+ */
+bool BLERemoteCharacteristic::canWriteNoResponse() {
+	return (m_charProp & ESP_GATT_CHAR_PROP_BIT_WRITE_NR) != 0;
+} // canWriteNoResponse
 
 
 /*
@@ -97,12 +155,12 @@ void BLERemoteCharacteristic::gattClientEventHandler(
 		// ESP_GATTC_NOTIFY_EVT
 		//
 		// notify
-		// - uint16_t           conn_id
-		// - esp_bd_addr_t      remote_bda
-		// - uint16_t           handle
-		// - uint16_t           value_len
-		// - uint8_t*           value
-		// - bool               is_notify
+		// - uint16_t           conn_id    - The connection identifier of the server.
+		// - esp_bd_addr_t      remote_bda - The device address of the BLE server.
+		// - uint16_t           handle     - The handle of the characteristic for which the event is being received.
+		// - uint16_t           value_len  - The length of the received data.
+		// - uint8_t*           value      - The received data.
+		// - bool               is_notify  - True if this is a notify, false if it is an indicate.
 		//
 		// We have received a notification event which means that the server wishes us to know about a notification
 		// piece of data.  What we must now do is find the characteristic with the associated handle and then
@@ -123,6 +181,7 @@ void BLERemoteCharacteristic::gattClientEventHandler(
 			} // End we have a callback function ...
 			break;
 		} // ESP_GATTC_NOTIFY_EVT
+
 
 		//
 		// ESP_GATTC_READ_CHAR_EVT
@@ -167,10 +226,27 @@ void BLERemoteCharacteristic::gattClientEventHandler(
 				break;
 			}
 
-			// We have process the notify and can unlock the semaphore.
+			// We have processed the notify registration and can unlock the semaphore.
 			m_semaphoreRegForNotifyEvt.give();
 			break;
 		} // ESP_GATTC_REG_FOR_NOTIFY_EVT
+
+
+		//
+		// ESP_GATTC_UNREG_FOR_NOTIFY_EVT
+		//
+		// unreg_for_notify:
+		// - esp_gatt_status_t status
+		// - uint16_t          handle
+		//
+		case ESP_GATTC_UNREG_FOR_NOTIFY_EVT: {
+			if (evtParam->unreg_for_notify.handle != getHandle()) {
+				break;
+			}
+			// We have processed the notify un-registration and can unlock the semaphore.
+			m_semaphoreRegForNotifyEvt.give();
+			break;
+		} // ESP_GATTC_UNREG_FOR_NOTIFY_EVT:
 
 
 		//
@@ -204,29 +280,10 @@ void BLERemoteCharacteristic::gattClientEventHandler(
 /**
  * @brief Populate the descriptors (if any) for this characteristic.
  */
-void BLERemoteCharacteristic::getDescriptors() {
-	ESP_LOGD(LOG_TAG, ">> getDescriptors() for characteristic: %s", getUUID().toString().c_str());
+void BLERemoteCharacteristic::retrieveDescriptors() {
+	ESP_LOGD(LOG_TAG, ">> retrieveDescriptors() for characteristic: %s", getUUID().toString().c_str());
 
 	removeDescriptors();   // Remove any existing descriptors.
-
-	/*
-	uint16_t count;
-	esp_gatt_status_t status = ::esp_ble_gattc_get_attr_count(
-		getRemoteService()->getClient()->getGattcIf(),
-		getRemoteService()->getClient()->getConnId(),
-		ESP_GATT_DB_DESCRIPTOR,
-		getRemoteService()->getStartHandle(),
-		getRemoteService()->getEndHandle(),
-		getHandle(), // Characteristic handle ... only used for ESP_GATT_DB_DESCRIPTOR
-		&count
-	);
-	if (status != ESP_GATT_OK) {
-		ESP_LOGE(LOG_TAG, "esp_ble_gattc_get_attr_count: %s", BLEUtils::gattStatusToString(status).c_str());
-	} else {
-		ESP_LOGD(LOG_TAG, "Number of descriptors associated with characteristic is %d", count);
-	}
-	*/
-
 
 	// Loop over each of the descriptors within the service associated with this characteristic.
 	// For each descriptor we find, create a BLERemoteDescriptor instance.
@@ -255,6 +312,7 @@ void BLERemoteCharacteristic::getDescriptors() {
 		if (count == 0) {
 			break;
 		}
+		ESP_LOGE(LOG_TAG, "");
 		ESP_LOGD(LOG_TAG, "Found a descriptor: Handle: %d, UUID: %s", result.handle, BLEUUID(result.uuid).toString().c_str());
 
 		// We now have a new characteristic ... let us add that to our set of known characteristics
@@ -269,9 +327,16 @@ void BLERemoteCharacteristic::getDescriptors() {
 		offset++;
 	} // while true
 	//m_haveCharacteristics = true; // Remember that we have received the characteristics.
-	ESP_LOGD(LOG_TAG, "<< getDescriptors(): Found %d descriptors.", offset);
+	ESP_LOGD(LOG_TAG, "<< retrieveDescriptors(): Found %d descriptors.", offset);
 } // getDescriptors
 
+
+/**
+ * @brief Retrieve the map of descriptors keyed by UUID.
+ */
+std::map<std::string, BLERemoteDescriptor *>* BLERemoteCharacteristic::getDescriptors() {
+	return &m_descriptorMap;
+} // getDescriptors
 
 
 /**
@@ -308,7 +373,7 @@ BLERemoteDescriptor* BLERemoteCharacteristic::getDescriptor(BLEUUID uuid) {
  * @brief Get the remote service associated with this characteristic.
  * @return The remote service associated with this characteristic.
  */
-BLERemoteService *BLERemoteCharacteristic::getRemoteService() {
+BLERemoteService* BLERemoteCharacteristic::getRemoteService() {
 	return m_pRemoteService;
 } // getRemoteService
 
@@ -368,9 +433,17 @@ uint8_t BLERemoteCharacteristic::readUInt8(void) {
 std::string BLERemoteCharacteristic::readValue() {
 	ESP_LOGD(LOG_TAG, ">> readValue(): uuid: %s, handle: %d 0x%.2x", getUUID().toString().c_str(), getHandle(), getHandle());
 
+	// Check to see that we are connected.
+	if (!getRemoteService()->getClient()->isConnected()) {
+		ESP_LOGE(LOG_TAG, "Disconnected");
+		throw BLEDisconnectedException();
+	}
+
 	m_semaphoreReadCharEvt.take("readValue");
 
 	// Ask the BLE subsystem to retrieve the value for the remote hosted characteristic.
+	// This is an asynchronous request which means that we must block waiting for the response
+	// to become available.
 	esp_err_t errRc = ::esp_ble_gattc_read_char(
 		m_pRemoteService->getClient()->getGattcIf(),
 		m_pRemoteService->getClient()->getConnId(),    // The connection ID to the BLE server
@@ -409,7 +482,7 @@ void BLERemoteCharacteristic::registerForNotify(
 
 	m_semaphoreRegForNotifyEvt.take("registerForNotify");
 
-	if (notifyCallback != nullptr) {
+	if (notifyCallback != nullptr) {   // If we have a callback function, then this is a registration.
 		esp_err_t errRc = ::esp_ble_gattc_register_for_notify(
 			m_pRemoteService->getClient()->getGattcIf(),
 			*m_pRemoteService->getClient()->getPeerAddress().getNative(),
@@ -419,8 +492,8 @@ void BLERemoteCharacteristic::registerForNotify(
 		if (errRc != ESP_OK) {
 			ESP_LOGE(LOG_TAG, "esp_ble_gattc_register_for_notify: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
 		}
-	} // Register
-	else {
+	} // End Register
+	else {   // If we weren't passed a callback function, then this is an unregistration.
 		esp_err_t errRc = ::esp_ble_gattc_unregister_for_notify(
 			m_pRemoteService->getClient()->getGattcIf(),
 			*m_pRemoteService->getClient()->getPeerAddress().getNative(),
@@ -430,7 +503,7 @@ void BLERemoteCharacteristic::registerForNotify(
 		if (errRc != ESP_OK) {
 			ESP_LOGE(LOG_TAG, "esp_ble_gattc_unregister_for_notify: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
 		}
-	} // Unregister
+	} // End Unregister
 
 	m_semaphoreRegForNotifyEvt.wait("registerForNotify");
 
@@ -446,10 +519,12 @@ void BLERemoteCharacteristic::registerForNotify(
  * @return N/A.
  */
 void BLERemoteCharacteristic::removeDescriptors() {
+	// Iterate through all the descriptors releasing their storage and erasing them from the map.
 	for (auto &myPair : m_descriptorMap) {
+	   m_descriptorMap.erase(myPair.first);
 	   delete myPair.second;
 	}
-	m_descriptorMap.empty();
+	m_descriptorMap.clear();   // Technically not neeeded, but just to be sure.
 } // removeCharacteristics
 
 
@@ -474,6 +549,12 @@ std::string BLERemoteCharacteristic::toString() {
  */
 void BLERemoteCharacteristic::writeValue(std::string newValue, bool response) {
 	ESP_LOGD(LOG_TAG, ">> writeValue(), length: %d", newValue.length());
+
+	// Check to see that we are connected.
+	if (!getRemoteService()->getClient()->isConnected()) {
+		ESP_LOGE(LOG_TAG, "Disconnected");
+		throw BLEDisconnectedException();
+	}
 
 	m_semaphoreWriteCharEvt.take("writeValue");
 
@@ -521,6 +602,5 @@ void BLERemoteCharacteristic::writeValue(uint8_t newValue, bool response) {
 void BLERemoteCharacteristic::writeValue(uint8_t* data, size_t length, bool response) {
 	writeValue(std::string((char *)data, length), response);
 } // writeValue
-
 
 #endif /* CONFIG_BT_ENABLED */

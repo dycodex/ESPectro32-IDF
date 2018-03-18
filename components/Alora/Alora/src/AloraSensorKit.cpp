@@ -178,8 +178,13 @@ void AloraSensorKit::begin() {
         }
     }
 
-    pinMode(ALORA_WINDSENSOR_PIN, INPUT);
-    attachInterrupt(digitalPinToInterrupt(ALORA_WINDSENSOR_PIN), aloraWindSensorInterruptHandler, RISING);
+#if ALORA_SENSOR_USE_MAX30205
+    max30205 = new MAX30205();
+    max30205->begin();
+#endif
+
+    // pinMode(ALORA_WINDSENSOR_PIN, INPUT);
+    // attachInterrupt(digitalPinToInterrupt(ALORA_WINDSENSOR_PIN), aloraWindSensorInterruptHandler, RISING);
 
     pinMode(ALORA_MAGNETIC_SENSOR_PIN, INPUT);
 }
@@ -189,6 +194,7 @@ void AloraSensorKit::begin() {
  * This function is usually called inside loop() function.
  */
 void AloraSensorKit::run() {
+
     doAllSensing();
 }
 
@@ -213,59 +219,66 @@ void AloraSensorKit::printSensingTo(String& str) {
 
     // BME280
     char tStr[9], pStr[9], hStr[9];
-    dtostrf(lastSensorData.T1, 6, 2, tStr);
-    dtostrf(lastSensorData.P, 6, 2, pStr);
-    dtostrf(lastSensorData.H1, 6, 2, hStr);
+    dtostrf(lastSensorData_.T1, 6, 2, tStr);
+    dtostrf(lastSensorData_.P, 6, 2, pStr);
+    dtostrf(lastSensorData_.H1, 6, 2, hStr);
     char bme280PayloadStr[64];
     sprintf(bme280PayloadStr, "[BME280] T = %s *C\tP = %s Pa\tH = %s\r\n", tStr, pStr, hStr);
 
-    dtostrf(lastSensorData.T2, 6, 2, tStr);
-    dtostrf(lastSensorData.H2, 6, 2, hStr);
+    dtostrf(lastSensorData_.T2, 6, 2, tStr);
+    dtostrf(lastSensorData_.H2, 6, 2, hStr);
     char hdcPayloadStr[40];
     sprintf(hdcPayloadStr, "[HDC1080] T = %s *C\tH = %s\r\n", tStr, hStr);
 
     char gasPayloadStr[40];
-    sprintf(gasPayloadStr, "[GAS & CO2] Gas = %d\tCO2 = %d\r\n", lastSensorData.gas, lastSensorData.co2);
+    sprintf(gasPayloadStr, "[GAS & CO2] Gas = %d\tCO2 = %d\r\n", lastSensorData_.gas, lastSensorData_.co2);
 
     char luxStr[15];
-    dtostrf((float)lastSensorData.lux, 10, 4, luxStr);
+    dtostrf((float)lastSensorData_.lux, 10, 4, luxStr);
     char lightPayloadStr[40];
     sprintf(lightPayloadStr, "[Light Sensor] %s Lux\r\n", luxStr);
 
     char xStr[9], yStr[9], zStr[9];
-    dtostrf(lastSensorData.accelX, 6, 2, xStr);
-    dtostrf(lastSensorData.accelY, 6, 2, yStr);
-    dtostrf(lastSensorData.accelZ, 6, 2, zStr);
+    dtostrf(lastSensorData_.accelX, 6, 2, xStr);
+    dtostrf(lastSensorData_.accelY, 6, 2, yStr);
+    dtostrf(lastSensorData_.accelZ, 6, 2, zStr);
     char accelPayloadStr[64];
     sprintf(accelPayloadStr, "[ACCEL] X = %s\tY = %s\tZ = %s\r\n", xStr, yStr, zStr);
 
-    dtostrf(lastSensorData.gyroX, 6, 2, xStr);
-    dtostrf(lastSensorData.gyroY, 6, 2, yStr);
-    dtostrf(lastSensorData.gyroZ, 6, 2, zStr);
+    dtostrf(lastSensorData_.gyroX, 6, 2, xStr);
+    dtostrf(lastSensorData_.gyroY, 6, 2, yStr);
+    dtostrf(lastSensorData_.gyroZ, 6, 2, zStr);
     char gyroPayloadStr[64];
     sprintf(gyroPayloadStr, "[GYRO] X = %s\tY = %s\tZ = %s\r\n", xStr, yStr, zStr);
 
     char magHeadingStr[9];
-    dtostrf(lastSensorData.magX, 6, 2, xStr);
-    dtostrf(lastSensorData.magY, 6, 2, yStr);
-    dtostrf(lastSensorData.magZ, 6, 2, zStr);
-    dtostrf(lastSensorData.magHeading, 6, 2, magHeadingStr);
+    dtostrf(lastSensorData_.magX, 6, 2, xStr);
+    dtostrf(lastSensorData_.magY, 6, 2, yStr);
+    dtostrf(lastSensorData_.magZ, 6, 2, zStr);
+    dtostrf(lastSensorData_.magHeading, 6, 2, magHeadingStr);
     char magPayloadStr[64];
     sprintf(magPayloadStr, "[MAG] X = %s\tY = %s\tZ = %s\tHd = %s Deg\r\n", xStr, yStr, zStr, magHeadingStr);
 
     char magnetic[2];
-    sprintf(magnetic, "%d", lastSensorData.magnetic);
+    sprintf(magnetic, "%d", lastSensorData_.magnetic);
     char magneticPayloadStr[40];
     sprintf(magneticPayloadStr, "[MAGNETIC] %s \r\n", magnetic);
 
     char windSpeedStr[9];
-    dtostrf(lastSensorData.windSpeed, 6, 2, windSpeedStr);
+    dtostrf(lastSensorData_.windSpeed, 6, 2, windSpeedStr);
     char windPayloadStr[40];
-    sprintf(windPayloadStr, "[WIND SPEED] Speed = %s MPH", windSpeedStr);
+    sprintf(windPayloadStr, "[WIND SPEED] Speed = %s MPH \r\n", windSpeedStr);
+
+#if ALORA_SENSOR_USE_MAX30205
+    char bodyTempStr[9];
+	dtostrf(lastSensorData_.BT, 6, 2, bodyTempStr);
+	char bodyTempPayloadStr[40];
+	sprintf(bodyTempPayloadStr, "[BODY TEMP] Temp = %s *C \r\n", bodyTempStr);
+#endif
 
     str = String(bme280PayloadStr) + String(hdcPayloadStr) + String(gasPayloadStr);
     str += String(accelPayloadStr) + String(gyroPayloadStr) + String(magPayloadStr);
-    str += String(lightPayloadStr) + String(magneticPayloadStr) + String(windPayloadStr);
+    str += String(lightPayloadStr) + String(magneticPayloadStr) + String(windPayloadStr) + bodyTempPayloadStr;
 }
 
 /**
@@ -493,6 +506,9 @@ void AloraSensorKit::configureTSL2591Sensor() {
     Serial.println(F(" ms"));
     Serial.println(F("------------------------------------"));
     Serial.println(F(""));
+
+    //Test Interrupt
+    tsl2591->registerInterrupt(10, 100);
 }
 
 /**
@@ -540,66 +556,85 @@ void AloraSensorKit::readWindSpeed(float& windspeed) {
     }
 }
 
+#if ALORA_SENSOR_USE_MAX30205
+void AloraSensorKit::readBodyTemperature(float& temp) {
+	if (max30205 == NULL) {
+		temp = 0;
+		return;
+	}
+
+	temp = max30205->getTemperature() + 4.0; // read temperature for every 100ms
+}
+#endif
+
 /**
  * Read all sensors data and store them to he lastSensorData property.
  * @see lastSensorData
  */
 void AloraSensorKit::doAllSensing() {
-    if (millis() - lastSensorQuerryMs < ALORA_SENSOR_QUERY_INTERVAL) {
+    if (millis() - lastSensorQuerryMs < sensingInterval_) {
         return;
     }
+
+    Wire.reset();
 
     lastSensorQuerryMs = millis();
 
     float T1, P, H1;
     readBME280(T1, P, H1);
 
-    lastSensorData.T1 = T1;
-    lastSensorData.P = P;
-    lastSensorData.H1 = H1;
+    lastSensorData_.T1 = T1;
+    lastSensorData_.P = P;
+    lastSensorData_.H1 = H1;
 
     float T2, H2;
     readHDC1080(T2, H2);
-    lastSensorData.T2 = T2;
-    lastSensorData.H2 = H2;
+    lastSensorData_.T2 = T2;
+    lastSensorData_.H2 = H2;
 
     double lux;
     readTSL2591(lux);
-    lastSensorData.lux = lux;
+    lastSensorData_.lux = lux;
 
     uint16_t gas, co2;
     readGas(gas, co2);
-    lastSensorData.gas = gas;
-    lastSensorData.co2 = co2;
+    lastSensorData_.gas = gas;
+    lastSensorData_.co2 = co2;
 
     float X, Y, Z;
     readAccelerometer(X, Y, Z);
-    lastSensorData.accelX = X;
-    lastSensorData.accelY = Y;
-    lastSensorData.accelZ = Z;
+    lastSensorData_.accelX = X;
+    lastSensorData_.accelY = Y;
+    lastSensorData_.accelZ = Z;
 
     float gX, gY, gZ;
     readGyro(gX, gY, gZ);
-    lastSensorData.gyroX = gX;
-    lastSensorData.gyroY = gY;
-    lastSensorData.gyroZ = gZ;
+    lastSensorData_.gyroX = gX;
+    lastSensorData_.gyroY = gY;
+    lastSensorData_.gyroZ = gZ;
 
     float mX, mY, mZ, mH;
     readMagnetometer(mX, mY, mZ, mH);
-    lastSensorData.magX = mX;
-    lastSensorData.magY = mY;
-    lastSensorData.magZ = mZ;
-    lastSensorData.magHeading = mH;
+    lastSensorData_.magX = mX;
+    lastSensorData_.magY = mY;
+    lastSensorData_.magZ = mZ;
+    lastSensorData_.magHeading = mH;
 
     int mag;
     readMagneticSensor(mag);
-    lastSensorData.magnetic = mag;
+    lastSensorData_.magnetic = mag;
 
     float windspeed;
     readWindSpeed(windspeed);
-    lastSensorData.windSpeed = windspeed;
+    lastSensorData_.windSpeed = windspeed;
 
-    readGPS(lastSensorData.gpsFix);
+#if ALORA_SENSOR_USE_MAX30205
+    float bt;
+    readBodyTemperature(bt);
+    lastSensorData_.BT = bt;
+#endif
+
+    readGPS(lastSensorData_.gpsFix);
 }
 
 /**
@@ -620,7 +655,7 @@ DateTime AloraSensorKit::getDateTime() {
  * @see SensorValues
  */
 SensorValues& AloraSensorKit::getLastSensorData() {
-    return lastSensorData;
+    return lastSensorData_;
 }
 
 /**
@@ -652,6 +687,12 @@ void AloraSensorKit::readGPS(gps_fix& fix) {
 
     while (gps->available(*gpsStream)) {
         fix = gps->read();
+
+        if (fix.valid.location) {
+			if (gpsFixAvailableCallback_) {
+				gpsFixAvailableCallback_(fix);
+			}
+		}
     }
 }
 
@@ -662,3 +703,12 @@ void AloraSensorKit::readGPS(gps_fix& fix) {
 NMEAGPS* AloraSensorKit::getGPSObject() {
     return this->gps;
 }
+
+void AloraSensorKit::runGPS() {
+	readGPS(lastSensorData_.gpsFix);
+}
+
+GpioExpander& AloraSensorKit::GPIOExpander() {
+	return *ioExpander;
+}
+

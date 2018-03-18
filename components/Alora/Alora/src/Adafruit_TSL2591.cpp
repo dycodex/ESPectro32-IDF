@@ -398,3 +398,78 @@ void Adafruit_TSL2591::getSensor(sensor_t *sensor)
   sensor->min_value   = 0.0;
   sensor->resolution  = 1.0;
 }
+
+/*
+ * Interrupt-related
+ */
+
+void Adafruit_TSL2591::registerInterrupt(uint16_t lowerThreshold, uint16_t upperThreshold)
+{
+  if (!_initialized)
+  {
+    if (!begin())
+    {
+      return;
+    }
+  }
+
+  enable();
+  write8(TSL2591_COMMAND_BIT | TSL2591_REGISTER_THRESHOLD_NPAILTL, lowerThreshold);
+  write8(TSL2591_COMMAND_BIT | TSL2591_REGISTER_THRESHOLD_NPAILTH, lowerThreshold >> 8);
+  write8(TSL2591_COMMAND_BIT | TSL2591_REGISTER_THRESHOLD_NPAIHTL, upperThreshold);
+  write8(TSL2591_COMMAND_BIT | TSL2591_REGISTER_THRESHOLD_NPAIHTH, upperThreshold >> 8);
+  disable();
+}
+
+void Adafruit_TSL2591::registerInterrupt(uint16_t lowerThreshold, uint16_t upperThreshold, tsl2591Persist_t persist)
+{
+  if (!_initialized)
+  {
+    if (!begin())
+    {
+      return;
+    }
+  }
+
+  enable();
+  write8(TSL2591_COMMAND_BIT | TSL2591_REGISTER_PERSIST_FILTER,  persist);
+  write8(TSL2591_COMMAND_BIT | TSL2591_REGISTER_THRESHOLD_AILTL, lowerThreshold);
+  write8(TSL2591_COMMAND_BIT | TSL2591_REGISTER_THRESHOLD_AILTH, lowerThreshold >> 8);
+  write8(TSL2591_COMMAND_BIT | TSL2591_REGISTER_THRESHOLD_AIHTL, upperThreshold);
+  write8(TSL2591_COMMAND_BIT | TSL2591_REGISTER_THRESHOLD_AIHTH, upperThreshold >> 8);
+  disable();
+}
+
+void Adafruit_TSL2591::clearInterrupt()
+{
+  if (!_initialized)
+  {
+    if (!begin())
+    {
+      return;
+    }
+  }
+
+  enable();
+  write8(TSL2591_CLEAR_INT, 0);
+  disable();
+}
+
+
+uint8_t Adafruit_TSL2591::getStatus()
+{
+  if (!_initialized)
+  {
+    if (!begin())
+    {
+      return 0;
+    }
+  }
+
+  // Enable the device
+  enable();
+  uint8_t x;
+  x = read8(TSL2591_COMMAND_BIT | TSL2591_REGISTER_DEVICE_STATUS);
+  disable();
+  return x;
+}

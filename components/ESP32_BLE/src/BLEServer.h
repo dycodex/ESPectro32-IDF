@@ -18,6 +18,7 @@
 #include "BLEAdvertising.h"
 #include "BLECharacteristic.h"
 #include "BLEService.h"
+#include "BLESecurity.h"
 #include "FreeRTOS.h"
 
 class BLEServerCallbacks;
@@ -53,9 +54,9 @@ class BLEServer {
 public:
 	uint32_t        getConnectedCount();
 	BLEService*     createService(const char* uuid);	
-	BLEService*     createService(BLEUUID uuid);
+	BLEService*     createService(BLEUUID uuid, uint32_t numHandles=15);
 	BLEAdvertising* getAdvertising();
-	void            setCallbacks(BLEServerCallbacks *pCallbacks);
+	void            setCallbacks(BLEServerCallbacks* pCallbacks);
 	void            startAdvertising();
 
 

@@ -19,9 +19,6 @@ static void test_alora() {
 
     sensorKit.begin();
 
-    delay(1000);
-    sensorKit.scanAndPrintI2C(Serial);
-
     for (;;) {
 		sensorKit.run();
 
@@ -29,7 +26,7 @@ static void test_alora() {
 		SensorValues sensorData = sensorKit.getLastSensorData();
 
 		// sensorData.T1 and sensorData.T2 are temperature sensor data
-		Serial.printf("Temp: %.2f, Hum: %.2f, Light: %.2f\n", sensorData.T1, sensorData.H1, sensorData.lux);
+		Serial.printf("Temp: %.2f, CO2: %d, Light: %.2f\n", sensorData.T1, sensorData.co2, sensorData.lux);
 
 		delay(1000);
     }

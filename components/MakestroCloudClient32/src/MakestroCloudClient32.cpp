@@ -178,6 +178,12 @@ bool MakestroCloudClient32::begin() {
 	return true;
 }
 
+bool MakestroCloudClient32::isConnected() {
+	//TODO: IMPLEMENT THIS!!!
+	
+	return true;
+}
+
 bool MakestroCloudClient32::reconnect() {
 
 	

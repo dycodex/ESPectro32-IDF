@@ -40,15 +40,16 @@ class MyCallbacks: public BLECharacteristicCallbacks {
       std::string rxValue = pCharacteristic->getValue();
 
       if (rxValue.length() > 0) {
+
         Serial.println("*********");
         Serial.print("Received Value: ");
 
 //        for (int i = 0; i < rxValue.length(); i++)
 //          Serial.print(rxValue[i]);
 
-        for (int i = 0; i < rxValue.length(); i++) {
-			Serial.printf("%x", rxValue[i]);
-		}
+//        for (int i = 0; i < rxValue.length(); i++) {
+//			Serial.printf("%x", rxValue[i]);
+//		}
 
         Serial.println();
         Serial.println("*********");
@@ -61,7 +62,7 @@ static void test_ble_uart() {
 	BLEDevice::init("UART Service");
 
 	// Create the BLE Server
-	BLEServer *pServer = new BLEServer();
+	BLEServer *pServer = BLEDevice::createServer();
 	pServer->setCallbacks(new MyServerCallbacks());
 
 	// Create the BLE Service
