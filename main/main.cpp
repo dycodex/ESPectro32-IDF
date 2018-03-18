@@ -31,6 +31,7 @@ extern "C" {
 
 //#include "explore/test_oled.hpp"
 //#include "explore/test_imu_lsm6_u8g2.hpp"
+//#include "explore/test_imu_adxl_u8g2.hpp"
 //#include "explore/test_serial_relay.hpp"
 //#include "explore/test_ble_matrix.hpp"
 //#include "explore/test_i2s_file.h"
@@ -64,6 +65,7 @@ void setup() {
 	test_alora_iotcentral();
 //  	test_eic_oled_makestro();
 //	test_imu_lsm6();
+//	test_imu_adxl_u8g2();
 //	test_ble_matrix();
 }
 

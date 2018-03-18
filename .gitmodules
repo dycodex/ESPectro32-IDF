@@ -7,3 +7,6 @@
 [submodule "components/u8g2"]
 	path = components/u8g2
 	url = https://github.com/andriyadi/u8g2
+[submodule "components/ADXL345"]
+	path = components/ADXL345
+	url = https://github.com/andriyadi/SparkFun_ADXL345_Arduino_Library
