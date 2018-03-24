@@ -38,6 +38,7 @@ extern "C" {
 
 #define AZURE_DEBUG_PRINT(...)  ESP_LOGI("AZURE", __VA_ARGS__);
 #define AZURE_INFO_PRINT(...)   ESP_LOGI("AZURE", __VA_ARGS__);
+#define AZURE_ERROR_PRINT(...)   ESP_LOGI("AZURE", __VA_ARGS__);
 
 #define AZURE_IOTHUB_MQTT_PORT    	8883
 #define AZURE_IOTHUB_TOKEN_EXPIRE    10*24*3600 //10 days
@@ -70,9 +71,11 @@ public:
 	typedef std::function<void(String cmd, cJSON *item)> ClientCommandCallback;
 	typedef std::map<String, ClientCommandCallback> CommandsHandlerMap_t;
 
+	AzureIoTHubMQTTClient();
 	AzureIoTHubMQTTClient(const char* iotHubHostName, const char* deviceId, const char* deviceKey);
 	virtual ~AzureIoTHubMQTTClient();
 
+	bool parseDeviceConnectionString(const char* deviceConnString);
 	bool begin();
 	bool reconnect();
 	void run();
@@ -101,6 +104,7 @@ private:
 	char* deviceId_ = nullptr;
 	char* deviceKey_ = nullptr;
 	String sasToken_;
+	void setConfig(const char* iotHubHostName, const char* deviceId, const char* deviceKey);
 
 	EventCallback eventCallback_ = NULL;
 	AzureIoTHubMQTTClientEvent currentEvent_ = AzureIoTHubMQTTClientEventUnknown;

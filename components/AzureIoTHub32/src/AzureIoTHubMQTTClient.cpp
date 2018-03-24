@@ -15,6 +15,11 @@
 #include "mbedtls/bignum.h"
 #include "mbedtls/pk.h"
 
+#include <map>
+#include <string>
+#include <sstream>
+#include <iostream>
+
 #define MQTT_CONNECTED_EVT 	BIT0
 #define MQTT_STOP_REQ_EVT 	BIT1
 #define MQTT_SUBSDATA_EVT 	BIT2
@@ -79,8 +84,53 @@ static void data_cb(mqtt_client *self, mqtt_event_data_t *params)
     xEventGroupSetBits(mqttEventGroup_, MQTT_SUBSDATA_EVT);
 }
 
+AzureIoTHubMQTTClient::AzureIoTHubMQTTClient():
+	Task(0, "AzureIoTHubMQTTClient", 4096*2, configMAX_PRIORITIES - 3) {
+}
+
+bool AzureIoTHubMQTTClient::parseDeviceConnectionString(
+		const char* deviceConnString) {
+
+	std::string s = std::string(deviceConnString);
+	std::map<std::string, std::string> m;
+
+	std::string::size_type key_pos = 0;
+	std::string::size_type key_end;
+	std::string::size_type val_pos;
+	std::string::size_type val_end;
+
+	while((key_end = s.find('=', key_pos)) != std::string::npos)
+	{
+		if((val_pos = s.find_first_not_of("=", key_end)) == std::string::npos)
+			break;
+
+		val_end = s.find(';', val_pos);
+		m.emplace(s.substr(key_pos, key_end - key_pos), s.substr(val_pos, val_end - val_pos));
+
+		key_pos = val_end;
+		if(key_pos != std::string::npos)
+			++key_pos;
+	}
+
+	for (const auto &pair : m) {
+		AZURE_DEBUG_PRINT("[%s] = %s", pair.first.c_str(),pair.second.c_str())
+	}
+
+	if ((m.count("DeviceId") > 0) && (m.count("HostName") > 0) && (m.count("SharedAccessKey") > 0)) {
+		setConfig(m["HostName"].c_str(), m["DeviceId"].c_str(), m["SharedAccessKey"].c_str());
+		return true;
+	}
+
+	return false;
+}
+
 AzureIoTHubMQTTClient::AzureIoTHubMQTTClient(const char* iotHubHostName, const char* deviceId, const char* deviceKey):
 Task(0, "AzureIoTHubMQTTClient", 4096*2, configMAX_PRIORITIES - 3) {
+
+	setConfig(iotHubHostName, deviceId, deviceKey);
+}
+
+void AzureIoTHubMQTTClient::setConfig(const char* iotHubHostName, const char* deviceId, const char* deviceKey) {
 
 	deviceId_ = (char*)malloc(sizeof(char*) * CONFIG_MQTT_MAX_CLIENT_LEN);
 	//iotHubHostName_ = (char*)malloc(sizeof(char*) * CONFIG_MQTT_MAX_HOST_LEN);
@@ -160,6 +210,11 @@ String AzureIoTHubMQTTClient::createIotHubSASToken(char* key,
 }
 
 bool AzureIoTHubMQTTClient::begin() {
+
+	if (deviceId_ == nullptr || deviceKey_ == nullptr) {
+		AZURE_ERROR_PRINT("Device Connection String is not set yet");
+		return false;
+	}
 
 	if (mqttEventGroup_ == NULL) {
 		mqttEventGroup_ = xEventGroupCreate();
@@ -475,4 +530,3 @@ void AzureIoTHubMQTTClient::handleSubscriptionData(AzureIoTHubMQTTClient::iothub
 		}
 	}
 }
-
