@@ -1,6 +1,6 @@
-# AzureIoTHubMQTTClient
+# AzureIoTHub32
 
-It's unofficial Azure IoT Hub client library for ESP32, build with ESP-IDF framework that may be compatible with Arduino framework. It's similar effort as what I've done for ESP8266 as found [here](https://github.com/andriyadi/AzureIoTHubMQTTClient).
+It's unofficial Azure IoT Hub client library for ESP32, build with ESP-IDF framework that may be compatible with Arduino framework. It's similar effort as what I've done for ESP8266 as found [here](https://github.com/andriyadi/AzureIoTHubMQTTClient). It currently only leverages MQTT protocol, that's why you'll find a class named `AzureIoTHubMQTTClient`. 
 
 I try to write the client library to be as familiar as possible. I name the method sendEvent instead of publish, so it's similar as another Azure IoT Hub client library. If you're familiar with MQTT, you know you should use topic in order to publish payload to MQTT broker. But since the MQTT topic used to publish message to Azure IoT Hub cannot be arbitrary, library sets it for you.
 
@@ -21,4 +21,5 @@ I took a liberty to write an easy to use class `AzureIoTHubMQTTClient`, all you 
 * [FreeRTOS Task wrapper](https://github.com/dycodex/ESPectro32/tree/master/lib/FreeRTOS-Wrapper)
 
 ## Getting Started
-Take a look the [examples](https://github.com/dycodex/ESPectro32-IDF/tree/master/components/AzureIoTHub/examples)
+Take a look the [examples](https://github.com/dycodex/ESPectro32-IDF/tree/master/components/AzureIoTHub/examples). Create an ESP-IDF project like you normally do, and add 3 components inside `components` folder, which are: this library, esp32-mqtt, and FreeRTOS-Wrapper, as explained above.
+Or...you can use PlatformIO instead. I may create a dedicated example project for this. But for now, it's what I have. Good luck.
