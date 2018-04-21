@@ -10,6 +10,14 @@
 #include <Arduino.h>
 #include <esp_log.h>
 
+//Change to 0 if you don't have a real sensor connected, and use random number instead
+#define USE_REAL_SENSOR  1
+
+#if USE_REAL_SENSOR
+#include <Adafruit_HDC1000.h>
+Adafruit_HDC1000 hdc = Adafruit_HDC1000();
+#endif
+
 #include <AzureIoTHubMQTTClient.h>
 
 const static char* TAG_AZURE = "AZURE";
@@ -18,10 +26,10 @@ const static char* TAG_AZURE = "AZURE";
 //#define DEVICE_ID               "[YOUR_DEVICE_ID]"
 //#define DEVICE_KEY              "[YOUR_DEVICE_KEY]" //Primary key of the device
 
-#define WIFI_SSID_NAME_1 		"dycodex"
-#define WIFI_SSID_PASS_1 		"11223344"
-#define WIFI_SSID_NAME_2 		"GERES10"
-#define WIFI_SSID_PASS_2 		"p@ssw0rd"
+#define WIFI_SSID_NAME_1 		"[SSID_NAME_1]"
+#define WIFI_SSID_PASS_1 		"[SSID_PASS_1]"
+#define WIFI_SSID_NAME_2 		"[SSID_NAME_2]"
+#define WIFI_SSID_PASS_2 		"[SSID_PASS_2]"
 
 const static char* IOT_CENTRAL_DEVICE_CONN_STRING = "HostName=[HOSTNAME];DeviceId=[DEVICE_ID];SharedAccessKey=[DEVICE_KEY]";
 
@@ -35,13 +43,26 @@ unsigned long lastDataPublish = 0;
 
 void readSensor(float *temp, float *press) {
 
+#if USE_REAL_SENSOR
+	*temp = hdc.readTemperature();
+	*hum = hdc.readHumidity();
+	*press = 0;
+#else
     //Randomize sensor value for now
     *temp = 20 + (rand() % 10 + 2);
     *press = 80 + ((rand() % 20 + 2) * 1.0f/6);
+    *hum = 70 + ((rand() % 30 + 2) * 1.0f/6);
+#endif
 
 }
 
 void setup() {
+
+#if USE_REAL_SENSOR
+    if (!hdc.begin()) {
+    		ESP_LOGE(TAG_AZURE, "Couldn't find sensor!");
+    }
+#endif
 
 	wifiMulti.addAP(WIFI_SSID_NAME_1, WIFI_SSID_PASS_1);
 	wifiMulti.addAP(WIFI_SSID_NAME_2, WIFI_SSID_PASS_2);
@@ -81,11 +102,12 @@ void loop() {
 
 	if ((millis() - lastDataPublish) > 5000) {
 
-		float temp, press;
-		readSensor(&temp, &press);
+		float temp, press, hum;
+		readSensor(&temp, &press, &hum);
 
 		//JSON string as payload
 		iotHubPayload = "{\"temperature\":" + String(temp) + ", "
+						 "\"humidity\":" + String(hum) + ", "
 						 "\"pressure\":" + String(press) + "}";
 
 		azureIoTHubClient->sendEvent((char*)iotHubPayload.c_str());

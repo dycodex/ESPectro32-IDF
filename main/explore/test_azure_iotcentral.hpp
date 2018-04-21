@@ -51,7 +51,7 @@ void readSensor(float *temp, float *press, float *hum) {
     //Randomize sensor value for now
     *temp = 20 + (rand() % 10 + 2);
     *press = 80 + ((rand() % 20 + 2) * 1.0f/6);
-    *hum = 0;
+    *hum = 70 + ((rand() % 30 + 2) * 1.0f/6);
 #endif
 
 }
