@@ -134,7 +134,7 @@ esp_err_t SSM2518::readReg(i2c_port_t i2c_num, uint8_t reg_addr,
 	i2c_master_write_byte(cmd, (SSM2518_I2C_ADDR<<1)|READ_BIT, ACK_CHECK_EN);
 
 	// MSB for reg data
-	i2c_master_read_byte(cmd, byte_val, NACK_VAL);
+	i2c_master_read_byte(cmd, byte_val, I2C_MASTER_ACK);//I2C_MASTER_NACK);//NACK_VAL);
 
 	i2c_master_stop(cmd);
 	// Execute and return status, should return 0

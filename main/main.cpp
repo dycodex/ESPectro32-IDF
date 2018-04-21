@@ -48,7 +48,7 @@ void setup() {
 
 	ESPectro32.begin();
 
-//	ESPectro32.scanI2C();
+	ESPectro32.scanI2C();
 //  	delay(1000);
 
 	// SD-Card Example
