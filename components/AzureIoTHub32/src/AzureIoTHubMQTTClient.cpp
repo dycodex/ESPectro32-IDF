@@ -23,6 +23,7 @@
 #define MQTT_CONNECTED_EVT 	BIT0
 #define MQTT_STOP_REQ_EVT 	BIT1
 #define MQTT_SUBSDATA_EVT 	BIT2
+#define MQTT_PUBLISHED_EVT 	BIT3
 
 #define HASH_LENGTH 32
 
@@ -55,6 +56,7 @@ static void subscribe_cb(mqtt_client *self, mqtt_event_data_t *params)
 static void publish_cb(mqtt_client *self, mqtt_event_data_t *params)
 {
 	AZURE_DEBUG_PRINT("MQTT payload published\n");
+	xEventGroupSetBits(mqttEventGroup_, MQTT_PUBLISHED_EVT);
 }
 static void data_cb(mqtt_client *self, mqtt_event_data_t *params)
 {
@@ -224,8 +226,10 @@ bool AzureIoTHubMQTTClient::begin() {
 		this->requestDataQueue_ = xQueueCreate(10, sizeof(char *));
 	}
 
+	xEventGroupClearBits(mqttEventGroup_, MQTT_CONNECTED_EVT);
 	xEventGroupClearBits(mqttEventGroup_, MQTT_STOP_REQ_EVT);
 	xEventGroupClearBits(mqttEventGroup_, MQTT_SUBSDATA_EVT);
+	xEventGroupClearBits(mqttEventGroup_, MQTT_PUBLISHED_EVT);
 
 //	if (subscriptionDataQueue_ == 0) {
 //		subscriptionDataQueue_ = xQueueCreate(10, sizeof(mqtt_subscription_data_t));
@@ -244,7 +248,7 @@ bool AzureIoTHubMQTTClient::begin() {
 	//strcpy(mqttSettings_.client_id, deviceId_);
 	strcpy(mqttSettings_.lwt_topic, "/lwt");
 	strcpy(mqttSettings_.lwt_msg, "offline");
-	mqttSettings_.lwt_qos = 0;
+	mqttSettings_.lwt_qos = 1;
 	mqttSettings_.lwt_retain = 0;
 
 	return true;
@@ -364,8 +368,20 @@ void AzureIoTHubMQTTClient::run() {
 	String _pubpTopic = "devices/" + String(deviceId_) + "/messages/events/";
 	//AZURE_DEBUG_PRINT("MQTT Topic: %s", _pubpTopic.c_str());
 
+	changeEventTo(AzureIoTHubMQTTClientEventPublishing);
 	mqtt_publish(mqttClient_, _pubpTopic.c_str(), payload, msgLen, 0, 0);
 
+	//TODO: Make it works!
+	changeEventTo(AzureIoTHubMQTTClientEventPublished);
+	/*
+	uxBits = xEventGroupWaitBits(mqttEventGroup_, MQTT_SUBSDATA_EVT, true, false, (30*1000*portTICK_PERIOD_MS)); //clear on exit, wait for 30 seconds
+	if (uxBits & MQTT_PUBLISHED_EVT) {
+		AZURE_DEBUG_PRINT("MQTT payload is published");
+		changeEventTo(AzureIoTHubMQTTClientEventPublished);
+	}
+	else {
+		changeEventTo(AzureIoTHubMQTTClientEventNotPublished);
+	}*/
 }
 
 void AzureIoTHubMQTTClient::runAsync(void* taskData) {

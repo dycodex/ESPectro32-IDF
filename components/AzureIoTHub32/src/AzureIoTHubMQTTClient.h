@@ -62,7 +62,10 @@ public:
 		AzureIoTHubMQTTClientEventNTPSynced,
 		AzureIoTHubMQTTClientEventConnecting,
 		AzureIoTHubMQTTClientEventConnected,
-		AzureIoTHubMQTTClientEventDisconnected
+		AzureIoTHubMQTTClientEventDisconnected,
+		AzureIoTHubMQTTClientEventPublishing,
+		AzureIoTHubMQTTClientEventPublished,
+		AzureIoTHubMQTTClientEventNotPublished,
 	};
 
 	typedef std::function<void(const AzureIoTHubMQTTClientEvent event)> EventCallback;
