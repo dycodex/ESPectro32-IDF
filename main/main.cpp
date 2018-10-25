@@ -38,7 +38,9 @@ extern "C" {
 //#include "explore/test_http_download.hpp"
 //#include "explore/test_play_wav_file.hpp"
 //#include "explore/test_alora_iotcentral.hpp"
-#include "explore/test_azure_iotcentral.hpp"
+//#include "explore/test_azure_iotcentral.hpp"
+//#include "testcode/test_tello.hpp"
+#include "explore/test_ip5209.hpp"
 
 void setup() {
 	initArduino();
@@ -65,11 +67,15 @@ void setup() {
 //	test_alora_makestro();
 //	test_alora_iotcentral();
 //	test_azure_iot();
-	test_azure_iotcentral();
+//	test_azure_iotcentral();
 //  	test_eic_oled_makestro();
 //	test_imu_lsm6();
 //	test_imu_adxl_u8g2();
 //	test_ble_matrix();
+
+//	test_tello();
+	test_ip5209();
+
 }
 
 

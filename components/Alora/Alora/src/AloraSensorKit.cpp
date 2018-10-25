@@ -576,7 +576,7 @@ void AloraSensorKit::doAllSensing() {
         return;
     }
 
-    Wire.reset();
+    //Wire.reset();
 
     lastSensorQuerryMs = millis();
 
